@@ -26,10 +26,12 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -46,15 +48,20 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SearchingScreen(navController: NavHostController, snackbarHostState: SnackbarHostState){
-    var LampName by remember { mutableStateOf("") }
-    var navigate by remember { mutableStateOf(false) }
+fun SearchingScreen(
+    navController: NavHostController,
+    snackbarHostState: SnackbarHostState,
+){
+    var LampName by rememberSaveable { mutableStateOf("") }
+    var isNavigate by remember { mutableStateOf(false) }
+    var isDrivingMode by remember { mutableStateOf(false) }
     val coroutineScope = rememberCoroutineScope()
     val context = LocalContext.current
     val focusManager = LocalFocusManager.current
@@ -62,7 +69,12 @@ fun SearchingScreen(navController: NavHostController, snackbarHostState: Snackba
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp),
+            .padding(16.dp)
+            .clickable(
+                indication = null,
+                interactionSource = remember { MutableInteractionSource() }) {
+                focusManager.clearFocus()
+            },
         //horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
@@ -144,12 +156,11 @@ fun SearchingScreen(navController: NavHostController, snackbarHostState: Snackba
                             Log.d("SearchScreen", "properties: $properties")
                             //Should throw the data into LocationDetailScreen
                             //need to JSON
-
-                            navController.navigate("LocationDetail/${properties.Latitude}/${properties.Longitude}")
+                            val propertiesJson = Json.encodeToString(LampPostResponse)
+                            navController.navigate("位置資料/$propertiesJson")
                         } else {
                             coroutineScope.launch{
                                 snackbarHostState.showSnackbar("沒有該路燈位置及資訊")
-
                             }
                         }
                     }
@@ -179,7 +190,7 @@ fun SearchingScreen(navController: NavHostController, snackbarHostState: Snackba
                             Log.d("SearchScreen", "feature: $feature")
                             Log.d("SearchScreen", "geometry: ${geometry}")
                             Log.d("SearchScreen", "properties: $properties")
-                            openUrl(context, "${properties.Latitude},${properties.Longitude}", travelMap[selectedText]!!, navigate)
+                            openUrl(context, query = "${properties.Latitude},${properties.Longitude}", travel = travelMap[selectedText]!!, isNavigate = isNavigate, isDrivingMode = isDrivingMode && isNavigate)
                         } else {
                             coroutineScope.launch{
                                 snackbarHostState.showSnackbar("沒有該路燈位置及資訊")
@@ -203,21 +214,44 @@ fun SearchingScreen(navController: NavHostController, snackbarHostState: Snackba
             modifier = Modifier
                 .padding(top = 15.dp)
                 .fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceEvenly
         ){
             Row (
                 modifier = Modifier.clickable(indication = null, interactionSource = remember { MutableInteractionSource() }) {
-                    navigate = !navigate
+                    isNavigate = !isNavigate
                 },
                 verticalAlignment = Alignment.CenterVertically
             ){
                 Checkbox(
-                    checked = navigate,
+                    checked = isNavigate,
                     onCheckedChange = {
-                        navigate = it
+                        isNavigate = it
                     }
                 )
                 Text(
-                    text = "開啟駕駛模式",
+                    text = "使用導航",
+                )
+            }
+            Row (
+                modifier = Modifier.clickable(
+                    enabled = isNavigate,
+                    indication = null,
+                    interactionSource = remember { MutableInteractionSource() }
+                ) {
+                    isDrivingMode = !isDrivingMode
+                },
+                verticalAlignment = Alignment.CenterVertically
+            ){
+                Checkbox(
+                    checked = isDrivingMode,
+                    onCheckedChange = {
+                        isDrivingMode = it
+                    },
+                    enabled = isNavigate
+                )
+                Text(
+                    text = "進入駕駛模式",
+                    color = if (isNavigate) Color.Unspecified else Color.Gray
                 )
             }
         }
@@ -256,11 +290,16 @@ fun getLampInfo(
     }
 }
 
-fun openUrl(context: Context, query: String, travel: String = "driving", navigate: Boolean) {
+fun openUrl(context: Context, query: String="", travel: String = "driving", isNavigate: Boolean = false, isDrivingMode: Boolean = false) {
     val encodedString = URLEncoder.encode(query, StandardCharsets.UTF_8.toString())
     Log.d("SearchScreen", "EncodedString: $encodedString")
-    var url = "https://www.google.com/maps/dir/?api=1&destination=$encodedString&travelmode=$travel"
-    if(navigate) url += "&dir_action=navigate"
+    var url = "https://www.google.com/maps/"
+    url += if (isNavigate) {
+        "dir/?api=1&destination=$encodedString&travelmode=$travel"
+    } else {
+        "search/?api=1&query=$encodedString"
+    }
+    if(isDrivingMode) url += "&dir_action=navigate"
     Log.d("SearchScreen", "URL: $url")
     val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
     context.startActivity(intent)
