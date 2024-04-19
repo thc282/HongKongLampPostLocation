@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>路燈查詢</title>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" type="text/css" href="style.css">
+    <script src="script.js" defer></script>
+</head>
+    <body>
+        <h1 style="padding-bottom: 4rem; ">路燈查詢</h1>
+        <form id="searchForm">
+            <div style="margin-bottom: 2rem;">
+                <input type="text" id="lampName" placeholder="燈柱編號">
+            </div>
+
+            <span class="customFont">交通方式</span>
+            <div class="form-select">
+                <select id="travelMode">
+                    <option value="driving">開車</option>
+                    <option value="walking">走路</option>
+                    <option value="transit">搭乘大眾運輸</option>
+                </select>
+            </div>
+            <div class="btnAction" style="margin-top: 4rem;">
+                <button type="submit">前往地圖位置</button>
+            </div>
+
+            <div class="travelOptContainer" >
+                <div class="row" >
+                    <input type="checkbox" id="navigateCheckbox"  style="transform: scale(1.5);" onclick="handleDrivingMode(!this.checked);" />
+                    <label for="navigateCheckbox" style="font-size: 1.5rem;">使用導航</label>
+                </div>
+                <div class="row">
+                    <input type="checkbox" id="drivingModeCheckbox" style="transform: scale(1.5);" disabled />
+                    <label for="drivingModeCheckbox" style="font-size: 1.5rem; color: gray;">進入駕駛模式</label>
+                </div>
+            </div>
+        </form>
+    </body>
+</html>
