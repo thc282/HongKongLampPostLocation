@@ -82,3 +82,11 @@ input[type="checkbox"]{
     font-size: 1.5rem;
     font-weight: 600;
 }
+
+.github-icon{
+    position: fixed;
+    font-size:3.8rem;
+    right: 1rem;
+    bottom: 1rem;
+    border: 0;
+}
