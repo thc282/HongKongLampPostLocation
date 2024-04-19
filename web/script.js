@@ -23,7 +23,7 @@ document.getElementById('searchForm').addEventListener('submit', function(event)
             var longitude = data.features[0].properties.Longitude;
 
             var encodedString = encodeURIComponent(`${latitude},${longitude}`);
-            var url = "https://www.google.com/maps/";
+            var url = "https://maps.google.com/maps/";
             url += isNavigate ? `dir/?api=1&destination=${encodedString}&travelmode=${travelMode}` : `search/?api=1&query=${encodedString}`;
             if(isDrivingMode && isNavigate) url += "&dir_action=navigate"
 
@@ -31,7 +31,8 @@ document.getElementById('searchForm').addEventListener('submit', function(event)
             console.log('URL: ' + url);
 
             // Open the Google Maps link in a new tab
-            window.open(url);
+            window.open(url, '_blank');
+            //window.open(url);
         })
         .catch(error => {
             // Handle any errors that occurred during the fetch request
