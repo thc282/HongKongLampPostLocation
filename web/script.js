@@ -38,7 +38,7 @@ document.getElementById('searchForm').addEventListener('submit', function(event)
             console.log('Appleurl: ' + Appleurl);
 
             // Open the Google Maps link in a new tab
-            window.open((isAndroid ? Googleurl : (isIPhone ? Appleurl : 'Unsupported device type')), '_blank');
+            window.open((isAndroid ? Googleurl : (isIPhone ? Appleurl : Googleurl)), '_blank');
             //window.open(url);
         })
         .catch(error => {
