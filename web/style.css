@@ -92,3 +92,9 @@ input[type="checkbox"]{
 #github-icon {
     width: 3.2rem;  /* adjust as needed */
 }
+
+@media screen and (max-width: 450px) {
+    label{
+        font-size: 1.2rem !important;
+    }
+}
