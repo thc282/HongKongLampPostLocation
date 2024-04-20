@@ -17,31 +17,32 @@ document.getElementById('searchForm').addEventListener('submit', function(event)
         .then(data => {
             // Handle the response data here
             console.log(data);
-            console.log(`${data.features[0].properties.Latitude} , ${data.features[0].properties.Longitude}`);
-            // Use latitude and longitude to construct the Google Maps link
-            var latitude = data.features[0].properties.Latitude;
-            var longitude = data.features[0].properties.Longitude;
-            var encodedAddress = encodeURIComponent(`${latitude},${longitude}`);
+            if(data.numberMatched != 0){
+    
+                // Use latitude and longitude to construct the Google Maps link
+                var latitude = data.features[0].properties.Latitude;
+                var longitude = data.features[0].properties.Longitude;
+                console.log(`${latitude} , ${longitude}`);
+                var encodedAddress = encodeURIComponent(`${latitude},${longitude}`);
 
-            // detect if it's an Android device
-            const ua = navigator.userAgent.toLowerCase()
-            const isAndroid = ua.includes('android')
-            const isIPhone = (navigator.userAgent.match(/iPhone/i)) ||(navigator.userAgent.match(/iPod/i))
-            var url = "https://maps.google.com/maps/";
-            var Appleurl = "https://maps.apple.com/maps/"; //q, daddr, dirflg, t
-            var Googleurl = isAndroid ? url : Appleurl;
-            Googleurl += isNavigate ? `dir/?api=1&destination=${encodedAddress}&travelmode=${travelMode}` : `search/?api=1&query=${encodedAddress}`;
-            Appleurl += isNavigate ? `?daddr=${encodedAddress}&dirflg=${(travelMode == "transit") ? "r" : travelMode[0]}` : `?q=${encodedAddress}`;
-            if(isDrivingMode && isNavigate) Googleurl += "&dir_action=navigate";
+                // detect if it's an Android device
+                const ua = navigator.userAgent.toLowerCase()
+                const isAndroid = ua.includes('android')
+                const isIPhone = (navigator.userAgent.match(/iPhone/i)) ||(navigator.userAgent.match(/iPod/i))
+                var Googleurl = "https://maps.google.com/maps/";
+                var Appleurl = "https://maps.apple.com/maps/"; //q, daddr, dirflg, t
+                Googleurl += isNavigate ? `dir/?api=1&destination=${encodedAddress}&travelmode=${travelMode}` : `search/?api=1&query=${encodedAddress}`;
+                Appleurl += isNavigate ? `?daddr=${encodedAddress}&dirflg=${(travelMode == "transit") ? "r" : travelMode[0]}` : `?q=${encodedAddress}`;
+                if(isDrivingMode && isNavigate) Googleurl += "&dir_action=navigate";
 
-            console.log('Googleurl: ' + Googleurl);
-            console.log('Appleurl: ' + Appleurl);
-
-            // Open the Google Maps link in a new tab
-            window.open((isAndroid ? Googleurl : (isIPhone ? Appleurl : Googleurl)), '_blank');
-            //window.open(url);
-        })
-        .catch(error => {
+                console.log('Googleurl: ' + Googleurl);
+                console.log('Appleurl: ' + Appleurl);
+                console.log('Opened link: ' + (isAndroid ? Googleurl : (isIPhone ? Appleurl : Googleurl)));
+                // Open the Google Maps link in a new tab
+                window.open((isAndroid ? Googleurl : (isIPhone ? Appleurl : Googleurl)), '_blank');
+                //window.open(url);
+             }else alert('沒有該路燈位置及資訊!')
+        }).catch(error => {
             // Handle any errors that occurred during the fetch request
             console.error(error);
         });
