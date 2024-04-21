@@ -6,6 +6,13 @@ body {
     min-height: 100vh;
     margin: auto;
     font-family: Arial, sans-serif;
+    color: black;
+    background-color: white;
+    transition: background-color 1s;
+}
+
+body .disabled{
+    color: grey
 }
 
 form {
@@ -83,15 +90,85 @@ input[type="checkbox"]{
     font-weight: 600;
 }
 
-.github-icon{
+#github-container{
     margin: auto 2rem 2rem auto;
     position: relative;
     border: 0;
 }
 
-#github-icon {
+.github, .github-white {
     width: 3.2rem;  /* adjust as needed */
 }
+
+.github-white{
+    position: absolute;
+    inset: 0;
+}
+
+.github-icon{
+    opacity: 1;
+    transition: 1s ease-out;
+}
+
+.animate-github-icon{
+    opacity: 0;
+    color: aliceblue;
+}
+
+.github-white-icon{
+    opacity: 0;
+    transition: all 1s ease-out;
+}
+
+.animate-github-white-icon{
+    opacity: 1;
+    color: aliceblue;
+}
+
+#themeBtn{
+    position: relative;
+    margin: 2rem 2rem auto auto;
+    width: 3rem;
+}
+
+.sun, .moon{
+    width: inherit;
+}
+
+.moon{
+    position: absolute;
+    inset: 0;
+}
+
+.sun-icon {
+    opacity: 1;
+    transform: translateY(0) rotateZ(0deg);
+    transition: all 1s ease-out;
+}
+
+.animate-sun{
+    opacity: 0;
+    transform: translateY(110%) rotateZ(100deg);
+    color: aliceblue;
+}
+
+.moon-icon {
+    opacity: 0;
+    transform: translateY(110%) rotateZ(50deg); 
+    transition: all 1s ease-out;
+}
+
+.animate-moon{
+    opacity: 1;
+    transform: translateY(0%) rotateZ(0deg);
+    color: aliceblue;
+}
+
+.dark-mode {
+    background-color: #3b4255;
+    color: white;
+}
+
 
 @media screen and (max-width: 450px) {
     label{

@@ -8,7 +8,11 @@
     <script src="script.js" defer></script>
 </head>
     <body>
-        <h1 style="margin-bottom: 4rem; margin-top: auto; ">路燈查詢</h1>
+        <div id="themeBtn">
+            <img src="./sun-icon.png" alt="theme" class="sun sun-icon" >
+            <img src="./moon-icon.png" alt="theme" class="moon moon-icon">
+        </div>
+        <h1 style="margin-bottom: 4rem ">路燈查詢</h1>
         <form id="searchForm">
             <div style="margin-bottom: 2rem;">
                 <input type="text" id="lampName" placeholder="燈柱編號">
@@ -30,7 +34,7 @@
                 </div>
                 <div class="row">
                     <input type="checkbox" id="drivingModeCheckbox" style="transform: scale(1.5);" disabled />
-                    <label for="drivingModeCheckbox" style="font-size: 1.5rem; color: gray;">進入駕駛模式<br>(Android適用)</label>
+                    <label for="drivingModeCheckbox" style="font-size: 1.5rem;" class="disabled">進入駕駛模式<br>(Android適用)</label>
                 </div>
             </div>
 
@@ -38,9 +42,10 @@
                 <button type="submit">前往地圖位置</button>
             </div>
         </form>
-        <div class="github-icon">
-            <a href="https://github.com/thc282/HongKongLampPostLocation" style="text-decoration: none; cursor: default; color: inherit;"></a>
-                <img src="./github-mark.png" alt="GitHub" id="github-icon">
+        <div id="github-container">
+            <a href="https://github.com/thc282/HongKongLampPostLocation" style="text-decoration: none; cursor: default; color: inherit;" target="_blank">
+                <img src="./github-mark.png" alt="GitHub" class="github github-icon">
+                <img src="./github-mark-white.png" alt="GitHub" class="github-white github-white-icon">
             </a>
         </div>
     </body>

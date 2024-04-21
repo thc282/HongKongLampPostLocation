@@ -52,5 +52,17 @@ function handleDrivingMode(checked){
     let driving = document.getElementById('drivingModeCheckbox')
     driving.disabled = checked
     let label = document.querySelector('label[for="drivingModeCheckbox"]');
-    label.style.color = checked ? 'gray' : 'black';
+    label.classList.toggle("disabled")
 }
+
+document.querySelector("#themeBtn").addEventListener("click", function() {
+    var body = document.querySelector("body")
+    var githubIcon = document.querySelector("#github-icon")
+    document.querySelector(".sun-icon").classList.toggle("animate-sun");
+    document.querySelector(".moon-icon").classList.toggle("animate-moon");
+
+    document.querySelector(".github-icon").classList.toggle("animate-github-icon");
+    document.querySelector(".github-white-icon").classList.toggle("animate-github-white-icon");
+
+    document.querySelector("body").classList.toggle("dark-mode");
+})
