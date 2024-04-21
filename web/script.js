@@ -62,7 +62,6 @@ document.querySelector("#themeBtn").addEventListener("click", function() {
     document.querySelector(".moon-icon").classList.toggle("animate-moon");
 
     document.querySelector(".github-icon").classList.toggle("animate-github-icon");
-    document.querySelector(".github-white-icon").classList.toggle("animate-github-white-icon");
 
     document.querySelector("body").classList.toggle("dark-mode");
 })

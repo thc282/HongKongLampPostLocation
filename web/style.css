@@ -111,18 +111,7 @@ input[type="checkbox"]{
 }
 
 .animate-github-icon{
-    opacity: 0;
-    color: aliceblue;
-}
-
-.github-white-icon{
-    opacity: 0;
-    transition: all 1s ease-out;
-}
-
-.animate-github-white-icon{
-    opacity: 1;
-    color: aliceblue;
+    filter: invert(1) brightness(2);
 }
 
 #themeBtn{
@@ -149,19 +138,18 @@ input[type="checkbox"]{
 .animate-sun{
     opacity: 0;
     transform: translateY(110%) rotateZ(100deg);
-    color: aliceblue;
 }
 
 .moon-icon {
     opacity: 0;
-    transform: translateY(110%) rotateZ(50deg); 
+    transform: translateY(110%) rotateZ(50deg);
+    filter: invert(1);
     transition: all 1s ease-out;
 }
 
 .animate-moon{
     opacity: 1;
     transform: translateY(0%) rotateZ(0deg);
-    color: aliceblue;
 }
 
 .dark-mode {
