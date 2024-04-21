@@ -11,4 +11,7 @@ The aim of this project is to create an Android app that provides users with the
 ## Web page
 https://thc282.github.io/HongKongLampPostLocation/
 
+## API used
+空間數據共享平台: https://portal.csdi.gov.hk/csdi-webpage/info/dataquery?id=hyd_rcd_1629267205229_84645
+
 ## TODO
