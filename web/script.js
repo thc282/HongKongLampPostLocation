@@ -6,7 +6,7 @@ document.getElementById('searchForm').addEventListener('submit', function(event)
     let isNavigate = document.getElementById('navigateCheckbox').checked;
     let isDrivingMode = document.getElementById('drivingModeCheckbox').checked;
     // detect if it's an Android device
-    const ua = navigator.userAgent.toLowerCase()
+    const ua = navigator.userAgent
     const isAndroid = ua.indexOf('Android') > -1 || ua.indexOf('Adr') > -1 // android终端
     const isIPhone  = !!ua.match(/\(i[^;]+;( U;)? CPU.+Mac OS X/) //ios终端
 
