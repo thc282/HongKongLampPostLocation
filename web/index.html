@@ -7,12 +7,15 @@
     <link rel="stylesheet" type="text/css" href="style.css">
     <script src="script.js" defer></script>
 </head>
-    <body>
-        <div id="themeBtn">
-            <img src="./sun-icon.png" alt="theme" class="sun sun-icon" >
-            <img src="./moon-icon.png" alt="theme" class="moon moon-icon">
-        </div>
-        <h1 style="margin-bottom: 4rem ">路燈查詢</h1>
+    <body onload="startTime()">
+        <header>
+            <p id="datetime"></p>
+            <div id="themeBtn"> 
+                <img src="./sun-icon.png" alt="theme" class="sun sun-icon" >
+                <img src="./moon-icon.png" alt="theme" class="moon moon-icon">
+            </div>
+        </header>
+        <h1 style="margin-top:auto; margin-bottom: 4rem ">路燈查詢</h1>
         <form id="searchForm">
             <div style="margin-bottom: 2rem;">
                 <input type="text" id="lampName" placeholder="燈柱編號">
@@ -42,6 +45,7 @@
                 <button type="submit">前往地圖位置</button>
             </div>
         </form>
+        <div>(初次使用需等候幾秒)</div>
         <div id="github-container">
             <a href="https://github.com/thc282/HongKongLampPostLocation" style="text-decoration: none; cursor: default; color: inherit;" target="_blank">
                 <img src="./github-mark.png" alt="GitHub" class="github github-icon">
