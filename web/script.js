@@ -1,22 +1,37 @@
+window.addEventListener('load', function() {
+    const ua = navigator.userAgent;
+    const isIPhone = !!ua.match(/\(i[^;]+;( U;)? CPU.+Mac OS X/); //ios终端
+
+    if (isIPhone) {
+        const div = document.createElement('div');
+        div.style.marginTop = '2rem';
+        div.innerHTML = `
+            <button type="submit" class="Applebtn" onclick="document.getElementById('submitButton').value = 'Apple'">Apple地圖開啟</button>
+        `;
+
+        const form = document.getElementById('searchForm');
+        form.appendChild(div);
+    }
+});
+
 document.getElementById('searchForm').addEventListener('submit', function(event) {
     event.preventDefault();
     var lampName = document.getElementById('lampName').value;
-    var lampName = lampName.toUpperCase();
+    lampName = lampName.toUpperCase();
     var travelMode = document.getElementById('travelMode').value;
     let isNavigate = document.getElementById('navigateCheckbox').checked;
     let isDrivingMode = document.getElementById('drivingModeCheckbox').checked;
-    // detect if it's an Android device
-    const ua = navigator.userAgent
-    const isAndroid = ua.indexOf('Android') > -1 || ua.indexOf('Adr') > -1 // android终端
-    const isIPhone  = !!ua.match(/\(i[^;]+;( U;)? CPU.+Mac OS X/) //ios终端
+    let btnType = document.getElementById('submitButton').value;
 
     console.log('Lamp Name: ' + lampName);
     console.log('Travel Mode: ' + travelMode);
+    console.log('You choosed: ' + btnType);
     var url = `https://api.csdi.gov.hk/apim/dataquery/api/?id=hyd_rcd_1629267205229_84645&layer=lamppost&limit=10&offset=0`;
     if (lampName !== '') {
         url += `&Lamp_Post_Number=${lampName}`;
     }
 
+    
     fetch(url)
         .then(response => response.json())
         .then(data => {
@@ -37,9 +52,9 @@ document.getElementById('searchForm').addEventListener('submit', function(event)
 
                 console.log('Googleurl: ' + Googleurl);
                 console.log('Appleurl: ' + Appleurl);
-                console.log('Opened link: ' + (isAndroid ? Googleurl : (isIPhone ? Appleurl : Googleurl)));
+                console.log('Opened link: ' + (btnType == 'Google' ? Googleurl : (btnType == 'Apple' ? Appleurl : Googleurl)));
                 // Open the Google Maps link in a new tab
-                isAndroid ? window.open(Googleurl,'_blank') : (isIPhone ? window.location.href = Appleurl : window.open(Googleurl,'_blank'));
+                btnType == 'Google' ? window.open(Googleurl,'_blank') : (btnType == 'Apple' ? window.location.href = Appleurl : window.open(Googleurl,'_blank'));
                 //window.open((isAndroid ? Googleurl : (isIPhone ? Appleurl : Googleurl)), '_blank');
              }else alert('沒有該路燈位置及資訊!')
         }).catch(error => {
@@ -63,6 +78,7 @@ document.querySelector("#themeBtn").addEventListener("click", function() {
 
     document.querySelector(".github-icon").classList.toggle("animate-github-icon");
 
+    document.querySelector(".Applebtn").classList.toggle("Appltbtn-dark");
     document.querySelector("body").classList.toggle("dark-mode");
 })
 
@@ -76,4 +92,4 @@ function startTime() {
     const dateString = `${now.getFullYear()}/${now.getMonth() + 1}/${now.getDate()}`
     timeElement.innerHTML = `${dateString}<br><br>${timeString}`;
 }
-setInterval(startTime, 900);
+setInterval(startTime, 1000);

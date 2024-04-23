@@ -77,6 +77,19 @@ button{
     background-color: #5DBEA3;
 }
 
+.Googlebtn{
+    background-color: #4787F3;
+}
+
+.Applebtn{
+    background-color: black;
+    color: white;
+}
+
+.Appltbtn-dark{
+    filter: invert(1);
+}
+
 .travelOptContainer{
     width: calc(100% + 4rem);
     margin-left: -2rem;
