@@ -78,7 +78,7 @@ document.querySelector("#themeBtn").addEventListener("click", function() {
 
     document.querySelector(".github-icon").classList.toggle("animate-github-icon");
 
-    document.querySelector(".Applebtn").classList.toggle("Appltbtn-dark");
+    if(document.querySelector(".Applebtn")) document.querySelector(".Applebtn").classList.toggle("Appltbtn-dark");
     document.querySelector("body").classList.toggle("dark-mode");
 })
 
