@@ -54,7 +54,12 @@ document.getElementById('searchForm').addEventListener('submit', function(event)
                 console.log('Appleurl: ' + Appleurl);
                 console.log('Opened link: ' + (btnType == 'Google' ? Googleurl : (btnType == 'Apple' ? Appleurl : Googleurl)));
                 // Open the Google Maps link in a new tab
-                btnType == 'Google' ? window.open(Googleurl,'_blank') : (btnType == 'Apple' ? window.location.href = Appleurl : window.open(Googleurl,'_blank'));
+                if(document.querySelector(".Applebtn")){
+                    window.location.href = btnType == 'Google' ? Googleurl : btnType == 'Apple' ? Appleurl : Googleurl;
+                }else{
+                    window.open(Googleurl,'_blank')
+                }
+                //btnType == 'Google' ? window.open(Googleurl,'_blank') : (btnType == 'Apple' ? window.location.href = Appleurl : window.open(Googleurl,'_blank'));
                 //window.open((isAndroid ? Googleurl : (isIPhone ? Appleurl : Googleurl)), '_blank');
              }else alert('沒有該路燈位置及資訊!')
         }).catch(error => {
