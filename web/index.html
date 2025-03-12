@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" type="text/css" href="style.css">
     <script src="script.js" defer></script>
+    <script src="HK80_Latlng.js"></script>
 </head>
     <body onload="startTime()">
         <header>
@@ -15,12 +16,31 @@
                 <img src="./moon-icon.png" alt="theme" class="moon moon-icon">
             </div>
         </header>
-        <h1 style="margin-top:auto; margin-bottom: 4rem ">路燈查詢</h1>
+        <div class="form-select" style="margin: 4rem 0; width: 13rem;">
+            <select id="queryMode">
+                <option value="lamp">路燈查詢</option>
+                <option value="hk80">HK80</option>
+            </select>
+            <div class="dropDownArrow"></div>
+        </div>
         <form id="searchForm">
-            <div style="margin-bottom: 2rem;">
-                <input type="text" id="lampName" placeholder="燈柱編號">
-            </div>
-
+            <div id="lampContainer">
+                <div class="form-select" style="margin-bottom: 2rem;">
+                    <input type="text" id="lampName" placeholder="燈柱編號">
+                </div>
+            </div>    
+            <div id="hk80Container" style="display: none;">
+                <div>
+                    <div class="form-select" style="margin-bottom: 2rem;">
+                        <input type="text" id="hk80X" placeholder="x座標">
+                    </div>  
+                </div>
+                <div>
+                    <div class="form-select" style="margin-bottom: 2rem;">
+                        <input type="text" id="hk80Y" placeholder="y座標">
+                    </div>
+                </div>    
+            </div>    
             <span class="customFont">交通方式</span>
             <div class="form-select">
                 <select id="travelMode">
@@ -28,7 +48,9 @@
                     <option value="walking">走路</option>
                     <option value="transit">搭乘大眾運輸</option>
                 </select>
+                <div class="dropDownArrow"></div>
             </div>
+    
 
             <div class="travelOptContainer" >
                 <div class="row" >

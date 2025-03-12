@@ -1,4 +1,7 @@
-window.addEventListener('load', function() {
+var queryModeDiv, lampContainer, lampNameDiv, hk80Container, hk80X, hk80Y, travelModeDiv, navigateCBox, drivingCBox, searchForm, submitBtn
+
+window.addEventListener('load', function () {
+    getIdWhenReady();
     const ua = navigator.userAgent;
     const isIPhone = !!ua.match(/\(i[^;]+;( U;)? CPU.+Mac OS X/); //ios终端
 
@@ -14,76 +17,117 @@ window.addEventListener('load', function() {
     }
 });
 
-document.getElementById('searchForm').addEventListener('submit', function(event) {
-    event.preventDefault();
-    var lampName = document.getElementById('lampName').value;
-    lampName = lampName.toUpperCase();
-    var travelMode = document.getElementById('travelMode').value;
-    let isNavigate = document.getElementById('navigateCheckbox').checked;
-    let isDrivingMode = document.getElementById('drivingModeCheckbox').checked;
-    let btnType = document.getElementById('submitButton').value;
+function getIdWhenReady() {
+    queryModeDiv = document.getElementById('queryMode');
+    queryModeDiv.addEventListener('change', queryModeEvent);
+    lampContainer = document.getElementById('lampContainer');
+    lampNameDiv = document.getElementById('lampName');
+    hk80Container = document.getElementById('hk80Container');
+    hk80X = document.getElementById('hk80X');
+    hk80Y = document.getElementById('hk80Y');
+    travelModeDiv = document.getElementById('travelMode');
+    navigateCBox = document.getElementById('navigateCheckbox');
+    drivingCBox = document.getElementById('drivingModeCheckbox');
+    searchForm = document.getElementById('searchForm');
+    searchForm.addEventListener('submit', searchEvent);
+    submitBtn = document.getElementById('submitButton');
+}
 
-    console.log('Lamp Name: ' + lampName);
-    console.log('Travel Mode: ' + travelMode);
-    console.log('You choosed: ' + btnType);
+queryModeEvent = () => {
+    lampContainer.style.display = (queryModeDiv.value == "lamp") ? "block" : "none";
+    hk80Container.style.display = (queryModeDiv.value == "hk80") ? "flex" : "none";
+}
+
+searchEvent = (event) => {
+    switch (queryModeDiv.value) {
+        case "lamp":
+            searchLamp(event);
+            break;
+        case "hk80":
+            searchHK80(event);
+            break;
+        default:
+            alert('請選擇查詢模式!');
+    }
+}
+
+function searchLamp(event) {
+    event.preventDefault();
+    lampNameDiv.value = lampNameDiv.value.toUpperCase();
+    /* console.log('Lamp Name: ' + lampNameDiv.value);
+    console.log('Travel Mode: ' + travelModeDiv.value);
+    console.log('You choosed: ' + submitBtn.value); */
     var url = `https://api.csdi.gov.hk/apim/dataquery/api/?id=hyd_rcd_1629267205229_84645&layer=lamppost&limit=10&offset=0`;
-    if (lampName !== '') {
-        url += `&Lamp_Post_Number=${lampName}`;
+    if (lampNameDiv.value !== '') {
+        url += `&Lamp_Post_Number=${lampNameDiv.value}`;
     }
 
-    
+
     fetch(url)
         .then(response => response.json())
         .then(data => {
             // Handle the response data here
-            console.log(data);
-            if(data.numberMatched != 0){
+            //console.log(data);
+            if (data.numberMatched != 0) {
                 // Use latitude and longitude to construct the Google Maps link
                 var latitude = data.features[0].properties.Latitude;
                 var longitude = data.features[0].properties.Longitude;
-                console.log(`${latitude} , ${longitude}`);
-                var encodedAddress = encodeURIComponent(`${latitude},${longitude}`);
-
-                var Googleurl = "https://maps.google.com/maps/";
-                var Appleurl = "https://maps.apple.com/maps/"; //q, daddr, dirflg, t
-                Googleurl += isNavigate ? `dir/?api=1&destination=${encodedAddress}&travelmode=${travelMode}` : `search/?api=1&query=${encodedAddress}`;
-                Appleurl += isNavigate ? `?daddr=${encodedAddress}&dirflg=${(travelMode == "transit") ? "r" : travelMode[0]}` : `?q=${encodedAddress}`;
-                if(isDrivingMode && isNavigate) Googleurl += "&dir_action=navigate";
-
-                console.log('Googleurl: ' + Googleurl);
-                console.log('Appleurl: ' + Appleurl);
-                console.log('Opened link: ' + (btnType == 'Google' ? Googleurl : (btnType == 'Apple' ? Appleurl : Googleurl)));
-                // Open the Google Maps link in a new tab
-                if(document.querySelector(".Applebtn")){
-                    window.location.href = btnType == 'Google' ? Googleurl : btnType == 'Apple' ? Appleurl : Googleurl;
-                }else{
-                    window.open(Googleurl,'_blank')
-                }
+                createLink(latitude, longitude);
                 //btnType == 'Google' ? window.open(Googleurl,'_blank') : (btnType == 'Apple' ? window.location.href = Appleurl : window.open(Googleurl,'_blank'));
                 //window.open((isAndroid ? Googleurl : (isIPhone ? Appleurl : Googleurl)), '_blank');
-             }else alert('沒有該路燈位置及資訊!')
+            } else alert('沒有該路燈位置及資訊!')
         }).catch(error => {
             // Handle any errors that occurred during the fetch request
             console.error(error);
         });
-});
+};
 
-function handleDrivingMode(checked){
-    let driving = document.getElementById('drivingModeCheckbox')
-    driving.disabled = checked
+function searchHK80(event) {
+    event.preventDefault();
+    if(hk80X.value == '' || hk80Y.value == '') {
+        alert('請輸入東經及北緯座標!');
+        return;
+    }
+    var coordinate = new Conversion().gridToLatLng({ x: hk80X.value, y: hk80Y.value });
+    //console.log(coordinate);
+    createLink(coordinate.lat, coordinate.lng);
+}
+
+function createLink(latitude, longitude) {
+    //console.log(`${latitude} , ${longitude}`);
+    var encodedAddress = encodeURIComponent(`${latitude},${longitude}`);
+
+    var Googleurl = "https://maps.google.com/maps/";
+    var Appleurl = "https://maps.apple.com/maps/"; //q, daddr, dirflg, t
+    Googleurl += navigateCBox.checked ? `dir/?api=1&destination=${encodedAddress}&travelmode=${travelModeDiv.value}` : `search/?api=1&query=${encodedAddress}`;
+    Appleurl += navigateCBox.checked ? `?daddr=${encodedAddress}&dirflg=${(travelModeDiv.value == "transit") ? "r" : travelModeDiv.value[0]}` : `?q=${encodedAddress}`;
+    if (drivingCBox.checked && navigateCBox.checked) Googleurl += "&dir_action=navigate";
+
+    /* console.log('Googleurl: ' + Googleurl);
+    console.log('Appleurl: ' + Appleurl);
+    console.log('Opened link: ' + (submitBtn.value == 'Google' ? Googleurl : (submitBtn.value == 'Apple' ? Appleurl : Googleurl))); */
+    // Open the Google Maps link in a new tab
+    if (document.querySelector(".Applebtn")) {
+        window.location.href = submitBtn.value == 'Google' ? Googleurl : submitBtn.value == 'Apple' ? Appleurl : Googleurl;
+    } else {
+        window.open(Googleurl, '_blank')
+    }
+}
+
+//html onclick function
+function handleDrivingMode(checked) {
+    drivingCBox.disabled = checked
     let label = document.querySelector('label[for="drivingModeCheckbox"]');
     label.classList.toggle("disabled")
 }
 
-document.querySelector("#themeBtn").addEventListener("click", function() {
-    var body = document.querySelector("body")
-    var githubIcon = document.querySelector("#github-icon")
+document.querySelector("#themeBtn").addEventListener("click", function () {
     document.querySelector(".sun-icon").classList.toggle("animate-sun");
     document.querySelector(".moon-icon").classList.toggle("animate-moon");
 
     document.querySelector(".github-icon").classList.toggle("animate-github-icon");
 
-    if(document.querySelector(".Applebtn")) document.querySelector(".Applebtn").classList.toggle("Appltbtn-dark");
+    if (document.querySelector(".Applebtn")) document.querySelector(".Applebtn").classList.toggle("Appltbtn-dark");
     document.querySelector("body").classList.toggle("dark-mode");
 })
 
