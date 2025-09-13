@@ -1,4 +1,4 @@
-var queryModeDiv, lampContainer, lampNameDiv, hk80Container, hk80X, hk80Y, travelModeDiv, navigateCBox, drivingCBox, searchForm, submitBtn
+var queryModeDiv, lampContainer, lampNameDiv, slopeContainer, slopeNameDiv, hk80Container, hk80X, hk80Y, travelModeDiv, navigateCBox, drivingCBox, searchForm, submitBtn
 
 window.addEventListener('load', function () {
     getIdWhenReady();
@@ -22,6 +22,8 @@ function getIdWhenReady() {
     queryModeDiv.addEventListener('change', queryModeEvent);
     lampContainer = document.getElementById('lampContainer');
     lampNameDiv = document.getElementById('lampName');
+    slopeContainer = document.getElementById('slopeContainer');
+    slopeNameDiv = document.getElementById('slopeName');
     hk80Container = document.getElementById('hk80Container');
     hk80X = document.getElementById('hk80X');
     hk80Y = document.getElementById('hk80Y');
@@ -35,6 +37,7 @@ function getIdWhenReady() {
 
 queryModeEvent = () => {
     lampContainer.style.display = (queryModeDiv.value == "lamp") ? "block" : "none";
+    slopeContainer.style.display = (queryModeDiv.value == "slope") ? "block" : "none";
     hk80Container.style.display = (queryModeDiv.value == "hk80") ? "flex" : "none";
 }
 
@@ -42,6 +45,9 @@ searchEvent = (event) => {
     switch (queryModeDiv.value) {
         case "lamp":
             searchLamp(event);
+            break;
+        case "slope":
+            searchSlope(event);
             break;
         case "hk80":
             searchHK80(event);
@@ -61,8 +67,7 @@ function searchLamp(event) {
     if (lampNameDiv.value !== '') {
         url += `&Lamp_Post_Number=${lampNameDiv.value}`;
     }
-
-
+    
     fetch(url)
         .then(response => response.json())
         .then(data => {
@@ -81,6 +86,57 @@ function searchLamp(event) {
             console.error(error);
         });
 };
+
+function searchSlope(event) {
+    event.preventDefault();
+    
+    if (slopeNameDiv.value === '') {
+        alert('請輸入斜坡編號!');
+        return;
+    }
+    
+    const sn = slopeNameDiv.value.toUpperCase();
+    // 嘗試多個代理服務
+    const proxyUrls = [
+        `https://www.slope.landsd.gov.hk/smris/getSlopeTechInfo?sn=${encodeURIComponent(sn)}`,
+        `https://api.allorigins.win/get?url=${encodeURIComponent('https://www.slope.landsd.gov.hk/smris/getSlopeTechInfo?sn=' + sn)}`,
+    ];
+    
+    tryFetchWithProxy(proxyUrls, 0, sn);
+};
+
+function tryFetchWithProxy(urls, index, sn) {
+    if (index >= urls.length) {
+        //alert('無法連接到斜坡資料庫，請稍後再試!');
+        return;
+    }
+    
+    const url = urls[index];
+    
+    fetch(url)
+        .then(res => {
+            if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+            return res.json();
+        })
+        .then(data => {
+            // 處理 allorigins 的回應格式
+            const slopeData = data.contents ? JSON.parse(data.contents) : data;
+            const { NORTHING, EASTING } = slopeData[0];
+            if (!NORTHING || !EASTING) {
+                throw new Error('無效的座標資料');
+            }
+            //console.log(`邊坡 ${sn} 的座標：EASTING=${EASTING}, NORTHING=${NORTHING}`);
+            
+            // Convert HK80 coordinates to latitude and longitude
+            var coordinate = new Conversion().gridToLatLng({ x: EASTING, y: NORTHING });
+            createLink(coordinate.lat, coordinate.lng);
+        })
+        .catch(err => {
+            console.error(`代理 ${index + 1} 失敗:`, err);
+            // 嘗試下一個代理
+            tryFetchWithProxy(urls, index + 1, sn);
+        });
+}
 
 function searchHK80(event) {
     event.preventDefault();
