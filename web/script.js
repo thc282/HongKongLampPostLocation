@@ -1,200 +1,479 @@
-var queryModeDiv, lampContainer, lampNameDiv, slopeContainer, slopeNameDiv, hk80Container, hk80X, hk80Y, travelModeDiv, navigateCBox, drivingCBox, searchForm, submitBtn
-
-window.addEventListener('load', function () {
-    getIdWhenReady();
-    const ua = navigator.userAgent;
-    const isIPhone = !!ua.match(/\(i[^;]+;( U;)? CPU.+Mac OS X/); //ios终端
-
-    if (isIPhone) {
-        const div = document.createElement('div');
-        div.style.marginTop = '2rem';
-        div.innerHTML = `
-            <button type="submit" class="Applebtn" onclick="document.getElementById('submitButton').value = 'Apple'">Apple地圖開啟</button>
-        `;
-
-        const form = document.getElementById('searchForm');
-        form.appendChild(div);
-    }
-});
-
-function getIdWhenReady() {
-    queryModeDiv = document.getElementById('queryMode');
-    queryModeDiv.addEventListener('change', queryModeEvent);
-    lampContainer = document.getElementById('lampContainer');
-    lampNameDiv = document.getElementById('lampName');
-    slopeContainer = document.getElementById('slopeContainer');
-    slopeNameDiv = document.getElementById('slopeName');
-    hk80Container = document.getElementById('hk80Container');
-    hk80X = document.getElementById('hk80X');
-    hk80Y = document.getElementById('hk80Y');
-    travelModeDiv = document.getElementById('travelMode');
-    navigateCBox = document.getElementById('navigateCheckbox');
-    drivingCBox = document.getElementById('drivingModeCheckbox');
-    searchForm = document.getElementById('searchForm');
-    searchForm.addEventListener('submit', searchEvent);
-    submitBtn = document.getElementById('submitButton');
-}
-
-queryModeEvent = () => {
-    lampContainer.style.display = (queryModeDiv.value == "lamp") ? "block" : "none";
-    slopeContainer.style.display = (queryModeDiv.value == "slope") ? "block" : "none";
-    hk80Container.style.display = (queryModeDiv.value == "hk80") ? "flex" : "none";
-}
-
-searchEvent = (event) => {
-    switch (queryModeDiv.value) {
-        case "lamp":
-            searchLamp(event);
-            break;
-        case "slope":
-            searchSlope(event);
-            break;
-        case "hk80":
-            searchHK80(event);
-            break;
-        default:
-            alert('請選擇查詢模式!');
-    }
-}
-
-function searchLamp(event) {
-    event.preventDefault();
-    lampNameDiv.value = lampNameDiv.value.toUpperCase();
-    /* console.log('Lamp Name: ' + lampNameDiv.value);
-    console.log('Travel Mode: ' + travelModeDiv.value);
-    console.log('You choosed: ' + submitBtn.value); */
-    var url = `https://api.csdi.gov.hk/apim/dataquery/api/?id=hyd_rcd_1629267205229_84645&layer=lamppost&limit=10&offset=0`;
-    if (lampNameDiv.value !== '') {
-        url += `&Lamp_Post_Number=${lampNameDiv.value}`;
-    }
-    
-    fetch(url)
-        .then(response => response.json())
-        .then(data => {
-            // Handle the response data here
-            //console.log(data);
-            if (data.numberMatched != 0) {
-                // Use latitude and longitude to construct the Google Maps link
-                var latitude = data.features[0].properties.Latitude;
-                var longitude = data.features[0].properties.Longitude;
-                createLink(latitude, longitude);
-                //btnType == 'Google' ? window.open(Googleurl,'_blank') : (btnType == 'Apple' ? window.location.href = Appleurl : window.open(Googleurl,'_blank'));
-                //window.open((isAndroid ? Googleurl : (isIPhone ? Appleurl : Googleurl)), '_blank');
-            } else alert('沒有該路燈位置及資訊!')
-        }).catch(error => {
-            // Handle any errors that occurred during the fetch request
-            console.error(error);
-        });
-};
-
-function searchSlope(event) {
-    event.preventDefault();
-    
-    if (slopeNameDiv.value === '') {
-        alert('請輸入斜坡編號!');
-        return;
-    }
-    
-    const sn = slopeNameDiv.value.toUpperCase();
-    // 嘗試多個代理服務
-    const proxyUrls = [
-        `https://www.slope.landsd.gov.hk/smris/getSlopeTechInfo?sn=${encodeURIComponent(sn)}`,
-        `https://api.allorigins.win/get?url=${encodeURIComponent('https://www.slope.landsd.gov.hk/smris/getSlopeTechInfo?sn=' + sn)}`,
-    ];
-    
-    tryFetchWithProxy(proxyUrls, 0, sn);
-};
-
-function tryFetchWithProxy(urls, index, sn) {
-    if (index >= urls.length) {
-        //alert('無法連接到斜坡資料庫，請稍後再試!');
-        return;
-    }
-    
-    const url = urls[index];
-    
-    fetch(url)
-        .then(res => {
-            if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
-            return res.json();
-        })
-        .then(data => {
-            // 處理 allorigins 的回應格式
-            const slopeData = data.contents ? JSON.parse(data.contents) : data;
-            const { NORTHING, EASTING } = slopeData[0];
-            if (!NORTHING || !EASTING) {
-                throw new Error('無效的座標資料');
+// 應用程式主類
+class LampPostApp {
+    constructor() {
+        this.elements = {};
+        this.currentData = {
+            latitude: null,
+            longitude: null,
+            title: '位置資訊'
+        };
+        this.config = {
+            breakpoint: 600,
+            apis: {
+                lamppost: 'https://api.csdi.gov.hk/apim/dataquery/api/?id=hyd_rcd_1629267205229_84645&layer=lamppost&limit=10&offset=0',
+                slope: 'https://www.slope.landsd.gov.hk/smris/getSlopeTechInfo?sn=',
+                slopeProxy: 'https://api.allorigins.win/get?url='
             }
-            //console.log(`邊坡 ${sn} 的座標：EASTING=${EASTING}, NORTHING=${NORTHING}`);
-            
-            // Convert HK80 coordinates to latitude and longitude
-            var coordinate = new Conversion().gridToLatLng({ x: EASTING, y: NORTHING });
-            createLink(coordinate.lat, coordinate.lng);
-        })
-        .catch(err => {
-            console.error(`代理 ${index + 1} 失敗:`, err);
-            // 嘗試下一個代理
-            tryFetchWithProxy(urls, index + 1, sn);
+        };
+
+        document.addEventListener('DOMContentLoaded', () => {
+            this.initElements();
+            this.bindEvents();
+            this.startClock();
         });
-}
-
-function searchHK80(event) {
-    event.preventDefault();
-    if(hk80X.value == '' || hk80Y.value == '') {
-        alert('請輸入東經及北緯座標!');
-        return;
     }
-    var coordinate = new Conversion().gridToLatLng({ x: hk80X.value, y: hk80Y.value });
-    //console.log(coordinate);
-    createLink(coordinate.lat, coordinate.lng);
-}
 
-function createLink(latitude, longitude) {
-    //console.log(`${latitude} , ${longitude}`);
-    var encodedAddress = encodeURIComponent(`${latitude},${longitude}`);
+    // 初始化所有DOM元素
+    initElements() {
+        const elementIds = [
+            'queryMode', 'lampContainer', 'lampName', 'slopeContainer',
+            'slopePart1', 'slopePart2', 'slopePart3', 'slopePart4', 'slopePart5',
+            'hk80Container', 'hk80X', 'hk80Y', 'travelMode', 'navigateCheckbox',
+            'drivingModeCheckbox', 'searchForm', 'coordinateInfo',
+            'latDisplay', 'lngDisplay', 'latlngDisplay', 'openMapBtn', 'themeBtn', 'datetime',
+            'copyLatBtn', 'copyLngBtn', 'copyBothBtn'
+        ];
 
-    var Googleurl = "https://maps.google.com/maps/";
-    var Appleurl = "https://maps.apple.com/maps/"; //q, daddr, dirflg, t
-    Googleurl += navigateCBox.checked ? `dir/?api=1&destination=${encodedAddress}&travelmode=${travelModeDiv.value}` : `search/?api=1&query=${encodedAddress}`;
-    Appleurl += navigateCBox.checked ? `?daddr=${encodedAddress}&dirflg=${(travelModeDiv.value == "transit") ? "r" : travelModeDiv.value[0]}` : `?q=${encodedAddress}`;
-    if (drivingCBox.checked && navigateCBox.checked) Googleurl += "&dir_action=navigate";
+        elementIds.forEach(id => {
+            const el = document.getElementById(id);
+            if (!el) {
+                console.warn(`Element with id "${id}" not found in DOM.`);
+            }
+            this.elements[id] = el; 
+        });
+    }
 
-    /* console.log('Googleurl: ' + Googleurl);
-    console.log('Appleurl: ' + Appleurl);
-    console.log('Opened link: ' + (submitBtn.value == 'Google' ? Googleurl : (submitBtn.value == 'Apple' ? Appleurl : Googleurl))); */
-    // Open the Google Maps link in a new tab
-    if (document.querySelector(".Applebtn")) {
-        window.location.href = submitBtn.value == 'Google' ? Googleurl : submitBtn.value == 'Apple' ? Appleurl : Googleurl;
-    } else {
-        window.open(Googleurl, '_blank')
+    // 綁定所有事件
+    bindEvents() {
+        // 查詢模式切換
+        this.elements.queryMode?.addEventListener('change', () => this.handleQueryModeChange());
+        
+        // 表單提交
+        this.elements.searchForm?.addEventListener('submit', (e) => this.handleFormSubmit(e));
+        
+        // 地圖按鈕
+        this.elements.openMapBtn?.addEventListener('click', (e) => this.handleMapButtonClick(e));
+        
+        // 主題切換
+        this.elements.themeBtn?.addEventListener('click', () => this.toggleTheme());
+        
+        // 駕駛模式處理
+        this.elements.navigateCheckbox?.addEventListener('change', (e) => this.handleDrivingMode(e.target.checked));
+        
+        // 複製按鈕
+        this.elements.copyLatBtn?.addEventListener('click', () => this.copyToClipboard('lat'));
+        this.elements.copyLngBtn?.addEventListener('click', () => this.copyToClipboard('lng'));
+        this.elements.copyBothBtn?.addEventListener('click', () => this.copyToClipboard('both'));
+        
+        // 斜坡輸入處理
+        this.setupSlopeInputHandlers();
+        
+        // 窗口大小變化
+        window.addEventListener('resize', () => this.handleResize());
+    }
+
+    // 查詢模式切換處理
+    handleQueryModeChange() {
+        const mode = this.elements.queryMode.value;
+        const containers = {
+            lamp: this.elements.lampContainer,
+            slope: this.elements.slopeContainer,
+            hk80: this.elements.hk80Container
+        };
+
+        Object.keys(containers).forEach(key => {
+            if (containers[key]) {
+                if (key === mode) {
+                    containers[key].classList.remove('hidden');
+                    if (key === 'hk80') {
+                        containers[key].style.display = 'flex';
+                    }
+                } else {
+                    containers[key].classList.add('hidden');
+                }
+            }
+        });
+    }
+
+    // 表單提交處理
+    handleFormSubmit(event) {
+        event.preventDefault();
+
+        const mode = this.elements.queryMode.value;
+        const searchMethods = {
+            lamp: () => this.searchLamp(),
+            slope: () => this.searchSlope(),
+            hk80: () => this.searchHK80()
+        };
+
+        if (searchMethods[mode]) {
+            searchMethods[mode]();
+        } else {
+            this.showAlert('請選擇查詢模式!');
+        }
+    }
+
+    // 路燈查詢
+    async searchLamp() {
+        const lampName = this.elements.lampName.value.toUpperCase();
+        
+        if (!lampName) {
+            this.showAlert('請輸入燈柱編號!');
+            return;
+        }
+
+        this.elements.lampName.value = lampName;
+        
+        try {
+            const url = `${this.config.apis.lamppost}&Lamp_Post_Number=${lampName}`;
+            const response = await fetch(url);
+            const data = await response.json();
+            
+            if (data.numberMatched > 0) {
+                const { Latitude: lat, Longitude: lng } = data.features[0].properties;
+                this.displayCoordinates(lat, lng, `路燈: ${lampName}`);
+            } else {
+                this.showAlert('沒有該路燈位置及資訊!');
+            }
+        } catch (error) {
+            console.error('路燈查詢錯誤:', error);
+            this.showAlert('查詢過程中發生錯誤!');
+        }
+    }
+
+    // 斜坡查詢
+    async searchSlope() {
+        const parts = [
+            this.elements.slopePart1.value,
+            this.elements.slopePart2.value,
+            this.elements.slopePart3.value,
+            this.elements.slopePart4.value,
+            this.elements.slopePart5.value.toUpperCase()
+        ];
+
+        if (parts.some(part => !part)) {
+            this.showAlert('請填入完整的斜坡編號! (格式: XX方向-級別/類型編號)');
+            return;
+        }
+
+        const slopeNumber = `${parts[0]}${parts[1]}-${parts[2]}/${parts[3]}${parts[4]}`;
+        console.log('查詢斜坡編號:', slopeNumber);
+
+        const urls = [
+            `${this.config.apis.slope}${encodeURIComponent(slopeNumber)}`,
+            `${this.config.apis.slopeProxy}${encodeURIComponent(this.config.apis.slope + slopeNumber)}`
+        ];
+
+        await this.tryFetchWithProxy(urls, slopeNumber);
+    }
+
+    // 代理服務嘗試
+    async tryFetchWithProxy(urls, slopeNumber) {
+        for (let i = 0; i < urls.length; i++) {
+            try {
+                const response = await fetch(urls[i]);
+                //console.log('代理請求回應:', urls[0]);
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                
+                const data = await response.json();
+                const slopeData = data.contents ? JSON.parse(data.contents) : data;
+                
+                if (!slopeData || slopeData.length === 0) {
+                    this.showAlert('找不到該斜坡資料!');
+                    return;
+                }
+
+                const { NORTHING, EASTING } = slopeData[0];
+                const coordinate = new Conversion().gridToLatLng({ x: EASTING, y: NORTHING });
+                this.displayCoordinates(coordinate.lat, coordinate.lng, `斜坡: ${slopeNumber}`);
+                return;
+            } catch (error) {
+                console.error(`代理 ${i + 1} 失敗:`, error);
+                if (i === urls.length - 1) {
+                    this.showAlert('無法連接到斜坡資料庫，請稍後再試!');
+                }
+            }
+        }
+    }
+
+    // HK80座標查詢
+    searchHK80() {
+        const x = this.elements.hk80X.value;
+        const y = this.elements.hk80Y.value;
+
+        if (!x || !y) {
+            this.showAlert('請輸入東經及北緯座標!');
+            return;
+        }
+
+        const coordinate = new Conversion().gridToLatLng({ x, y });
+        this.displayCoordinates(coordinate.lat, coordinate.lng, `HK80座標: ${x}, ${y}`);
+    }
+
+    // 顯示座標資訊
+    displayCoordinates(latitude, longitude, title = '位置資訊') {
+        this.currentData = { latitude, longitude, title };
+        
+        this.elements.latDisplay.textContent = latitude.toFixed(6);
+        this.elements.lngDisplay.textContent = longitude.toFixed(6);
+        this.elements.latlngDisplay.textContent = `${longitude.toFixed(6)}, ${latitude.toFixed(6)}`;
+        
+        this.updateTitle(title);
+        this.elements.coordinateInfo.classList.remove('hidden');
+        this.elements.coordinateInfo.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    // 更新標題
+    updateTitle(title) {
+        const titleElement = document.getElementById('coordinateTitle');
+        if (!titleElement) return;
+
+        const isNarrowScreen = window.innerWidth < this.config.breakpoint;
+        const displayTitle = (isNarrowScreen && title.includes(':')) 
+            ? title.replace(':', ':<br>') 
+            : title;
+        
+        titleElement.innerHTML = displayTitle;
+    }
+
+    // 地圖按鈕點擊處理
+    handleMapButtonClick(event) {
+        event.preventDefault();
+        event.stopPropagation();
+        
+        if (this.currentData.latitude && this.currentData.longitude) {
+            this.openMap(this.currentData.latitude, this.currentData.longitude);
+        } else {
+            this.showAlert('請先獲取位置資料!');
+        }
+    }
+
+    // 打開地圖
+    openMap(latitude, longitude) {
+        const encodedAddress = encodeURIComponent(`${latitude},${longitude}`);
+        const isNavigate = this.elements.navigateCheckbox.checked;
+        const travelMode = this.elements.travelMode.value;
+        const isDriving = this.elements.drivingModeCheckbox.checked;
+
+        const urls = this.buildMapUrls(encodedAddress, isNavigate, travelMode, isDriving);
+        const isIPhone = /\(i[^;]+;( U;)? CPU.+Mac OS X/.test(navigator.userAgent);
+
+        if (isIPhone) {
+            window.location.href = urls.apple;
+        } else {
+            window.open(urls.google, '_blank');
+        }
+    }
+
+    // 構建地圖URL
+    buildMapUrls(encodedAddress, isNavigate, travelMode, isDriving) {
+        const baseUrls = {
+            google: 'https://maps.google.com/maps/',
+            apple: 'https://maps.apple.com/maps/'
+        };
+
+        let googleUrl = baseUrls.google;
+        let appleUrl = baseUrls.apple;
+
+        if (isNavigate) {
+            googleUrl += `dir/?api=1&destination=${encodedAddress}&travelmode=${travelMode}`;
+            const appleMode = travelMode === 'transit' ? 'r' : travelMode[0];
+            appleUrl += `?daddr=${encodedAddress}&dirflg=${appleMode}`;
+            
+            if (isDriving) {
+                googleUrl += '&dir_action=navigate';
+            }
+        } else {
+            googleUrl += `search/?api=1&query=${encodedAddress}`;
+            appleUrl += `?q=${encodedAddress}`;
+        }
+
+        return { google: googleUrl, apple: appleUrl };
+    }
+
+    // 駕駛模式處理
+    handleDrivingMode(isNavigateChecked) {
+        this.elements.drivingModeCheckbox.disabled = !isNavigateChecked;
+        const label = document.querySelector('label[for="drivingModeCheckbox"]');
+        label?.classList.toggle('disabled', !isNavigateChecked);
+    }
+
+    // 主題切換
+    toggleTheme() {
+        const selectors = ['.sun-icon', '.moon-icon', '.github-icon'];
+        const classes = ['animate-sun', 'animate-moon', 'animate-github-icon'];
+        
+        selectors.forEach((selector, index) => {
+            document.querySelector(selector)?.classList.toggle(classes[index]);
+        });
+        
+        document.body.classList.toggle('dark-mode');
+    }
+
+    // 設置斜坡輸入處理器
+    setupSlopeInputHandlers() {
+        const parts = ['slopePart1', 'slopePart2', 'slopePart3', 'slopePart4', 'slopePart5'];
+        
+        parts.forEach((partId, index) => {
+            const element = this.elements[partId];
+            if (!element) return;
+
+            if (index === 4) {
+                // Part 5: 限制4位數字
+                element.addEventListener('input', (e) => {
+                    // 只保留數字
+                    let value = e.target.value.replace(/\D/g, '');
+                    // 限制最多4位
+                    if (value.length > 4) {
+                        value = value.slice(0, 4);
+                    }
+                    e.target.value = value;
+                });
+            } else {
+                // Parts 1-4: 選擇框自動跳轉
+                element.addEventListener('change', (e) => {
+                    if (e.target.value && this.elements[parts[index + 1]]) {
+                        this.elements[parts[index + 1]].focus();
+                    }
+                });
+            }
+
+            // 退格鍵處理
+            if (index > 0) {
+                element.addEventListener('keydown', (e) => {
+                    if (e.key === 'Backspace' && !e.target.value && this.elements[parts[index - 1]]) {
+                        this.elements[parts[index - 1]].focus();
+                        e.preventDefault();
+                    }
+                });
+            }
+        });
+    }
+
+    // 窗口大小變化處理
+    handleResize() {
+        if (this.currentData.title) {
+            this.updateTitle(this.currentData.title);
+        }
+    }
+
+    // 時鐘
+    startClock() {
+        const updateClock = () => {
+            const now = new Date();
+            const timeString = now.toLocaleTimeString('zh-TW', { hour12: false });
+            const dateString = now.toLocaleDateString('zh-TW');
+            
+            if (this.elements.datetime) {
+                this.elements.datetime.innerHTML = `${dateString}<br><br>${timeString}`;
+            }
+        };
+
+        updateClock();
+        setInterval(updateClock, 1000);
+    }
+
+    // 顯示警告
+    showAlert(message) {
+        alert(message);
+    }
+
+    // 複製到剪貼板
+    async copyToClipboard(type) {
+        if (!this.currentData.latitude || !this.currentData.longitude) {
+            this.showAlert('沒有可複製的座標資料!');
+            return;
+        }
+
+        let textToCopy = '';
+        let buttonElement = null;
+
+        switch (type) {
+            case 'lat':
+                textToCopy = this.currentData.latitude.toFixed(6);
+                buttonElement = this.elements.copyLatBtn;
+                break;
+            case 'lng':
+                textToCopy = this.currentData.longitude.toFixed(6);
+                buttonElement = this.elements.copyLngBtn;
+                break;
+            case 'both':
+                textToCopy = `${this.currentData.longitude.toFixed(6)}, ${this.currentData.latitude.toFixed(6)}`;
+                buttonElement = this.elements.copyBothBtn;
+                break;
+            default:
+                return;
+        }
+
+        try {
+            if (navigator.clipboard && window.isSecureContext) {
+                // 使用現代 Clipboard API
+                await navigator.clipboard.writeText(textToCopy);
+            } else {
+                // 回退到舊方法
+                this.fallbackCopyToClipboard(textToCopy);
+            }
+            
+            this.showCopySuccess(buttonElement, type);
+        } catch (error) {
+            console.error('複製失敗:', error);
+            this.showAlert('複製失敗，請手動複製座標');
+        }
+    }
+
+    // 回退複製方法（適用於不支持 Clipboard API 的環境）
+    fallbackCopyToClipboard(text) {
+        const textArea = document.createElement('textarea');
+        textArea.value = text;
+        textArea.style.position = 'fixed';
+        textArea.style.left = '-999999px';
+        textArea.style.top = '-999999px';
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        
+        try {
+            document.execCommand('copy');
+        } catch (error) {
+            throw new Error('Fallback copy failed');
+        } finally {
+            document.body.removeChild(textArea);
+        }
+    }
+
+    // 顯示複製成功動畫
+    showCopySuccess(buttonElement, type) {
+        if (!buttonElement) return;
+
+        // 添加成功樣式
+        buttonElement.classList.add('copied');
+        
+        // 更新提示文字
+        const messages = {
+            lat: '已複製緯度',
+            lng: '已複製經度',
+            both: '已複製經緯度'
+        };
+        
+        buttonElement.title = messages[type] || '已複製';
+
+        // 1.5秒後恢復原樣
+        setTimeout(() => {
+            buttonElement.classList.remove('copied');
+            const originalMessages = {
+                lat: '複製緯度',
+                lng: '複製經度',
+                both: '複製經緯度'
+            };
+            buttonElement.title = originalMessages[type] || '複製';
+        }, 1500);
     }
 }
 
-//html onclick function
+// 初始化應用程式
+const app = new LampPostApp();
+
+// 全局函數（用於HTML onclick，如果需要的話）
 function handleDrivingMode(checked) {
-    drivingCBox.disabled = checked
-    let label = document.querySelector('label[for="drivingModeCheckbox"]');
-    label.classList.toggle("disabled")
+    app.handleDrivingMode(checked);
 }
-
-document.querySelector("#themeBtn").addEventListener("click", function () {
-    document.querySelector(".sun-icon").classList.toggle("animate-sun");
-    document.querySelector(".moon-icon").classList.toggle("animate-moon");
-
-    document.querySelector(".github-icon").classList.toggle("animate-github-icon");
-
-    if (document.querySelector(".Applebtn")) document.querySelector(".Applebtn").classList.toggle("Appltbtn-dark");
-    document.querySelector("body").classList.toggle("dark-mode");
-})
-
-function startTime() {
-    const now = new Date();
-    const timeElement = document.getElementById("datetime");
-    const hours = now.getHours().toString().padStart(2, "0");
-    const minutes = now.getMinutes().toString().padStart(2, "0");
-    const seconds = now.getSeconds().toString().padStart(2, "0");
-    const timeString = `${hours}:${minutes}:${seconds}`;
-    const dateString = `${now.getFullYear()}/${now.getMonth() + 1}/${now.getDate()}`
-    timeElement.innerHTML = `${dateString}<br><br>${timeString}`;
-}
-setInterval(startTime, 1000);

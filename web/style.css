@@ -1,11 +1,44 @@
-header {
-    display: flex;
-    width: 100%;
-    height: 7rem;
-    flex-direction: row;
-    align-items: center;
-    justify-content: space-between;
-    background-color: #5DBEA3;
+/* CSS 變數定義 */
+:root {
+    /* 顏色系統 */
+    --primary-color: #5DBEA3;
+    --primary-hover: #4a9d82;
+    --google-blue: #4787F3;
+    --text-primary: #3b4255;
+    --text-secondary: #555;
+    --text-disabled: grey;
+    --bg-light: white;
+    --bg-dark: #3b4255;
+    --bg-card: #f8f9fa;
+    --border-color: #000;
+    --border-light: #ddd;
+    
+    /* 字體系統 */
+    --font-main: Arial, sans-serif;
+    --font-size-base: 1.5rem;
+    --font-size-small: 1.2rem;
+    --font-size-large: 1.4rem;
+    
+    /* 間距系統 */
+    --spacing-xs: 0.5rem;
+    --spacing-sm: 1rem;
+    --spacing-md: 2rem;
+    --spacing-lg: 4rem;
+    
+    /* 樣式系統 */
+    --border-radius: 1rem;
+    --transition: 0.4s ease-out;
+    --transition-fast: 0.2s ease;
+    
+    /* 響應式斷點 */
+    --breakpoint-tablet: 600px;
+    --breakpoint-mobile: 480px;
+    --breakpoint-small: 450px;
+}
+
+/* 基礎重置和布局 */
+* {
+    box-sizing: border-box;
 }
 
 body {
@@ -15,16 +48,71 @@ body {
     justify-content: center;
     min-height: 100vh;
     margin: auto;
-    font-family: Arial, sans-serif;
-    color: black;
-    background-color: white;
-    transition: background-color 1s;
+    font-family: var(--font-main);
+    color: var(--text-primary);
+    background-color: var(--bg-light);
+    transition: background-color var(--transition);
 }
 
-body .disabled {
-    color: grey
+/* Header 樣式 */
+header {
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+    height: 7rem;
+    align-items: center;
+    justify-content: space-between;
+    background-color: var(--primary-color);
 }
 
+#datetime {
+    margin: auto 0 auto 2rem;
+    font-size: 1.3rem;
+    font-weight: bolder;
+    color: white;
+}
+
+/* 主題切換按鈕 */
+#themeBtn {
+    position: relative;
+    margin: auto 2rem auto 0;
+    width: 3rem;
+    cursor: pointer;
+}
+
+.sun, .moon {
+    width: 100%;
+    height: 100%;
+    transition: all var(--transition);
+    color: white;
+}
+
+.moon {
+    position: absolute;
+    inset: 0;
+}
+
+.sun-icon {
+    opacity: 1;
+    transform: translateY(0) rotateZ(0deg);
+}
+
+.animate-sun {
+    opacity: 0;
+    transform: translateY(110%) rotateZ(100deg);
+}
+
+.moon-icon {
+    opacity: 0;
+    transform: translateY(110%) rotateZ(50deg);
+}
+
+.animate-moon {
+    opacity: 1;
+    transform: translateY(0%) rotateZ(0deg);
+}
+
+/* 表單樣式 */
 form {
     display: flex;
     flex-direction: column;
@@ -32,30 +120,36 @@ form {
     max-width: 80%;
 }
 
-.form-select>input,
-select,
-button {
-    width: 100%;
-    text-align: center;
-    height: 4.3rem;
-    align-items: center;
-    color: #3b4255;
-    font-family: Arial;
-    font-size: 1.5rem;
-    font-weight: 600;
+form > * + * {
+    margin-top: var(--spacing-md);
 }
 
-.form-select{
-    border: 0.1rem solid #000;
-    display: flex;
+.form-select {
     position: relative;
+    display: flex;
     align-items: center;
+    border: 0.1rem solid var(--border-color);
+    border-radius: var(--spacing-xs);
 }
 
-.form-select select{
+.form-select > input,
+.form-select > select {
+    width: 100%;
+    height: 4.3rem;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    text-align: center;
+    font-family: var(--font-main);
+    font-size: var(--font-size-base);
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+select {
+    appearance: none;
     -webkit-appearance: none;
     -moz-appearance: none;
-    appearance: none;
 }
 
 .dropDownArrow {
@@ -69,145 +163,502 @@ button {
     pointer-events: none;
 }
 
-input,
-select,
-button{
-    padding-inline: 0;
-    padding-block: 0rem;
-    border: 0;
-}
-
-#hk80Container{
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    justify-content: center;
-    width: 100%;
-    gap: 2rem;
-}
-
+/* 按鈕樣式 */
 button {
+    width: 100%;
+    height: 4.3rem;
+    padding: 0;
+    border: 0;
+    background-color: var(--primary-color);
     color: white;
     border-radius: 10rem;
-    border-width: 0;
-    background-color: #5DBEA3;
+    text-align: center;
+    font-family: var(--font-main);
+    font-size: var(--font-size-base);
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color var(--transition-fast);
+}
+
+button:hover {
+    background-color: var(--primary-hover);
 }
 
 .Googlebtn {
-    background-color: #4787F3;
+    background-color: var(--google-blue);
 }
 
-.Applebtn {
-    background-color: black;
-    color: white;
+.Googlebtn:hover {
+    background-color: #3d7ae4;
 }
 
-.Appltbtn-dark {
-    filter: invert(1);
+/* HK80 容器 */
+#hk80Container {
+    display: flex;
+    gap: var(--spacing-md);
+    width: 100%;
 }
 
+#hk80Container > div {
+    flex: 1;
+}
+
+/* 交通選項容器 */
 .travelOptContainer {
     width: calc(100% + 4rem);
     margin-left: -2rem;
     margin-top: 4rem;
     display: flex;
     justify-content: space-evenly;
+    flex-wrap: wrap;
+    gap: var(--spacing-sm);
 }
 
 .row {
     display: flex;
     justify-content: space-evenly;
     align-items: center;
+    min-width: 0;
+    flex: 1 1 auto;
 }
 
 input[type="checkbox"] {
     margin-right: 1.5rem;
+    transform: scale(1.5);
 }
 
-.customFont {
-    font-size: 1.5rem;
+label {
+    font-size: var(--font-size-base);
     font-weight: 600;
 }
 
+body .disabled {
+    color: var(--text-disabled);
+}
+
+.disabled {
+    color: var(--text-disabled);
+}
+
+.customFont {
+    font-size: var(--font-size-base);
+    font-weight: 600;
+    margin: var(--spacing-md) 0 var(--spacing-sm) 0;
+}
+
+/* 斜坡輸入樣式 */
+.slope-input-row {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--spacing-xs);
+    flex-wrap: wrap;
+}
+
+.slope-first-group {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+    flex-wrap: nowrap;
+    min-width: 0;
+}
+
+.slope-part {
+    flex: 0 0 4rem;
+    min-width: 4rem;
+}
+
+.slope-part-small {
+    flex: 0 0 3rem;
+    min-width: 3rem;
+}
+
+.slope-code {
+    flex: 1;
+    min-width: 8rem;
+}
+
+.slope-separator {
+    font-size: var(--font-size-base);
+    font-weight: bold;
+    color: var(--text-primary);
+}
+
+/* 座標資訊卡片 */
+#coordinateInfo {
+    margin-top: var(--spacing-md);
+    padding: 1.5rem;
+    background-color: var(--bg-card);
+    border-radius: var(--border-radius);
+    border: 1px solid var(--border-light);
+    width: 100%;
+}
+
+#coordinateTitle {
+    margin: 0 0 var(--spacing-xs) 0;
+    color: #333;
+    font-size: var(--font-size-large);
+    line-height: 1.4;
+}
+
+#coordinateDisplay {
+    font-size: var(--font-size-small);
+    color: var(--text-secondary);
+    line-height: 1.4;
+    margin-bottom: var(--spacing-sm);
+}
+
+#openMapBtn {
+    background-color: var(--primary-color);
+    border: none;
+    border-radius: var(--spacing-xs);
+    padding: var(--spacing-xs);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color var(--transition-fast);
+}
+
+#openMapBtn:hover {
+    background-color: var(--primary-hover);
+}
+
+/* GitHub 連結 */
 #github-container {
     margin: auto 2rem 2rem auto;
     position: relative;
     border: 0;
 }
 
-.github,
-.github-white {
-    width: 3.2rem;
-    /* adjust as needed */
-}
-
-.github-white {
-    position: absolute;
-    inset: 0;
-}
-
 .github-icon {
-    opacity: 1;
-    transition: 1s ease-out;
+    width: 3.2rem;
+    height: 3.2rem;
+    transition: var(--transition);
+    color: #24292e;
 }
 
 .animate-github-icon {
-    filter: invert(1) brightness(2);
+    color: #586069;
 }
 
-#datetime {
-    margin: auto 0 auto 2rem;
-    font-size: 1.3rem;
-    font-weight: bolder;
+/* 查詢模式選單 */
+.query-mode-select {
+    margin: 4rem 0;
+    width: 13rem;
 }
 
-#themeBtn {
-    position: relative;
-    margin: auto 2rem auto 0;
-    width: 3rem;
-}
-
-.sun,
-.moon {
-    width: inherit;
-}
-
-.moon {
-    position: absolute;
-    inset: 0;
-}
-
-.sun-icon {
-    opacity: 1;
-    transform: translateY(0) rotateZ(0deg);
-    transition: all 1s ease-out;
-}
-
-.animate-sun {
-    opacity: 0;
-    transform: translateY(110%) rotateZ(100deg);
-}
-
-.moon-icon {
-    opacity: 0;
-    transform: translateY(110%) rotateZ(50deg);
-    filter: invert(1);
-    transition: all 1s ease-out;
-}
-
-.animate-moon {
-    opacity: 1;
-    transform: translateY(0%) rotateZ(0deg);
-}
-
+/* 深色模式 */
 .dark-mode {
-    background-color: #3b4255;
+    background-color: var(--bg-dark);
     color: white;
 }
 
+.dark-mode .form-select {
+    border-color: #666;
+}
 
-@media screen and (max-width: 450px) {
+.dark-mode input,
+.dark-mode select {
+    color: white;
+}
+
+.dark-mode #coordinateInfo {
+    background-color: #4a5568;
+    border-color: #666;
+}
+
+.dark-mode #coordinateTitle {
+    color: #e2e8f0;
+}
+
+.dark-mode #coordinateDisplay {
+    color: #cbd5e0;
+}
+
+/* 深色模式下的 SVG 圖標 */
+.dark-mode .sun,
+.dark-mode .moon {
+    color: #f7fafc;
+}
+
+.dark-mode .github-icon {
+    color: #f7fafc;
+}
+
+.dark-mode .animate-github-icon {
+    color: #e2e8f0;
+}
+
+/* 響應式設計 */
+@media (max-width: var(--breakpoint-tablet)) {
+    #coordinateTitle {
+        white-space: pre-line;
+        word-break: keep-all;
+    }
+    
+    .travelOptContainer {
+        gap: var(--spacing-sm);
+    }
+    
+    .row {
+        flex: 1 1 45%;
+        min-width: 150px;
+    }
+}
+
+@media (min-width: var(--breakpoint-tablet)) {
+    #coordinateTitle {
+        white-space: nowrap;
+    }
+}
+
+@media (max-width: var(--breakpoint-mobile)) {
+    .slope-input-row {
+        flex-direction: column;
+        align-items: stretch;
+        gap: var(--spacing-sm);
+    }
+    
+    .slope-first-group {
+        justify-content: center;
+        gap: var(--spacing-xs);
+    }
+    
+    .slope-part,
+    .slope-part-small {
+        min-width: 3rem;
+        flex: 0 0 3rem;
+    }
+    
+    .slope-code {
+        min-width: 100%;
+        flex: 1;
+    }
+    
+    .travelOptContainer {
+        flex-direction: column;
+        gap: var(--spacing-md);
+        align-items: center;
+        width: 100%;
+        margin-left: 0;
+        padding: 0 var(--spacing-sm);
+    }
+    
+    .row {
+        justify-content: center;
+        width: 100%;
+    }
+    
+    form {
+        width: 95%;
+    }
+    
+    header {
+        padding: 0 var(--spacing-sm);
+    }
+    
+    #datetime {
+        font-size: 1.1rem;
+    }
+}
+
+/* 座標複製按鈕響應式 */
+@media (max-width: var(--breakpoint-mobile)) {
+    .coordinate-text {
+        font-size: var(--font-size-small);
+    }
+    
+    .copy-btn {
+        width: 18px;
+        height: 18px;
+        padding: 1px;
+    }
+    
+    .copy-btn svg {
+        width: 14px;
+        height: 14px;
+    }
+}
+
+@media (max-width: var(--breakpoint-small)) {
     label {
-        font-size: 1.2rem !important;
+        font-size: var(--font-size-small) !important;
+    }
+    
+    .customFont {
+        font-size: var(--font-size-small);
+    }
+    
+    button,
+    input,
+    select {
+        font-size: var(--font-size-small);
+    }
+}
+
+/* 無障礙功能 */
+@media (prefers-reduced-motion: reduce) {
+    button,
+    .sun,
+    .moon,
+    .github-icon,
+    .copy-btn.copied svg,
+    [class*="animate-"] {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+/* 焦點樣式 */
+button:focus,
+input:focus,
+select:focus {
+    outline: 2px solid var(--primary-color);
+    outline-offset: 2px;
+}
+
+/* 載入狀態 */
+.loading {
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+/* 隱藏類別 */
+.hidden {
+    display: none !important;
+}
+
+/* 實用類別 */
+.text-center {
+    text-align: center;
+}
+
+.mt-lg {
+    margin-top: var(--spacing-lg);
+}
+
+.mb-md {
+    margin-bottom: var(--spacing-md);
+}
+
+/* 座標複製按鈕樣式 */
+.coordinate-row {
+    display: flex;
+    align-items: center;
+    margin-bottom: var(--spacing-xs);
+    padding: var(--spacing-xs);
+    border-radius: var(--spacing-xs);
+    transition: background-color var(--transition-fast);
+}
+
+.coordinate-row:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+}
+
+.coordinate-text {
+    flex: 1;
+    overflow-wrap: break-word;
+    line-height: 1.4;
+    margin-right: var(--spacing-xs);
+}
+
+.copy-btn {
+    background: none;
+    border: none;
+    padding: 2px;
+    cursor: pointer;
+    color: var(--text-secondary);
+    border-radius: 3px;
+    transition: all var(--transition-fast);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+}
+
+.copy-btn svg {
+    width: 16px;
+    height: 16px;
+}
+
+.copy-btn:hover {
+    color: var(--primary-color);
+    background-color: rgba(93, 190, 163, 0.1);
+    transform: scale(1.1);
+}
+
+.copy-btn:active {
+    transform: scale(0.95);
+}
+
+.copy-btn.copied {
+    color: #28a745;
+    background-color: rgba(40, 167, 69, 0.1);
+}
+
+.copy-btn.copied svg {
+    animation: copySuccess 0.3s ease-in-out;
+}
+
+@keyframes copySuccess {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.2); }
+    100% { transform: scale(1); }
+}
+
+/* 深色模式下的複製按鈕 */
+.dark-mode .coordinate-row:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.dark-mode .copy-btn {
+    color: #cbd5e0;
+}
+
+.dark-mode .copy-btn:hover {
+    color: var(--primary-color);
+    background-color: rgba(93, 190, 163, 0.2);
+}
+
+/* SVG 圖標 hover 效果 */
+#themeBtn:hover .sun,
+#themeBtn:hover .moon {
+    transform: scale(1.1);
+}
+
+#github-container:hover .github-icon {
+    transform: scale(1.05);
+}
+
+.sun:hover,
+.moon:hover {
+    filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.3));
+}
+
+.github-icon:hover {
+    filter: drop-shadow(0 0 8px rgba(36, 41, 46, 0.3));
+}
+
+.dark-mode .github-icon:hover {
+    filter: drop-shadow(0 0 8px rgba(247, 250, 252, 0.3));
+}
+
+/* 效能優化 */
+.sun, .moon, .github-icon {
+    will-change: transform, opacity;
+}
+
+/* 防止佈局偏移 */
+#themeBtn {
+    contain: layout;
+}
+
+/* 優化動畫效能 */
+@media (prefers-reduced-motion: no-preference) {
+    .sun, .moon, .github-icon {
+        transition: all var(--transition-fast);
     }
 }

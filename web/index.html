@@ -8,15 +8,29 @@
     <script src="script.js" defer></script>
     <script src="HK80_Latlng.js"></script>
 </head>
-    <body onload="startTime()">
+    <body>
         <header>
             <p id="datetime"></p>
             <div id="themeBtn"> 
-                <img src="./sun-icon.png" alt="theme" class="sun sun-icon" >
-                <img src="./moon-icon.png" alt="theme" class="moon moon-icon">
+                <svg class="sun sun-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="12" cy="12" r="4" fill="currentColor"/>
+                    <g stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                        <line x1="12" y1="1" x2="12" y2="3"/>
+                        <line x1="12" y1="21" x2="12" y2="23"/>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+                        <line x1="1" y1="12" x2="3" y2="12"/>
+                        <line x1="21" y1="12" x2="23" y2="12"/>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+                    </g>
+                </svg>
+                <svg class="moon moon-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" stroke="currentColor" stroke-width="2" fill="currentColor"/>
+                </svg>
             </div>
         </header>
-        <div class="form-select" style="margin: 4rem 0; width: 13rem;">
+        <div class="form-select query-mode-select">
             <select id="queryMode">
                 <option value="lamp">路燈查詢</option>
                 <option value="slope">斜坡查詢</option>
@@ -26,23 +40,77 @@
         </div>
         <form id="searchForm">
             <div id="lampContainer">
-                <div class="form-select" style="margin-bottom: 2rem;">
+                <div class="form-select mb-md">
                     <input type="text" id="lampName" placeholder="燈柱編號">
                 </div>
             </div>    
-            <div id="slopeContainer" style="display: none;">
-                <div class="form-select" style="margin-bottom: 2rem;">
-                    <input type="text" id="slopeName" placeholder="斜坡編號">
+            <div id="slopeContainer" class="hidden">
+                <div class="slope-input-row mb-md">
+                    <div class="slope-first-group">
+                        <div class="form-select slope-part">
+                            <select id="slopePart1">
+                                <option value="1">1</option>
+                                <option value="2">2</option>
+                                <option value="3">3</option>
+                                <option value="4">4</option>
+                                <option value="5">5</option>
+                                <option value="6">6</option>
+                                <option value="7">7</option>
+                                <option value="8">8</option>
+                                <option value="9">9</option>
+                                <option value="10">10</option>
+                                <option value="11">11</option>
+                                <option value="12">12</option>
+                                <option value="13">13</option>
+                                <option value="14">14</option>
+                                <option value="15">15</option>
+                                <option value="16">16</option>
+                            </select>
+                        </div>
+                        <div class="form-select slope-part">
+                            <select id="slopePart2">
+                                <option value="NE">NE</option>
+                                <option value="SE">SE</option>
+                                <option value="SW">SW</option>
+                                <option value="NW">NW</option>
+                            </select>
+                        </div>
+                        <span class="slope-separator">-</span>
+                        <div class="form-select slope-part slope-part-small">
+                            <select id="slopePart3">
+                                <option value="A">A</option>
+                                <option value="B">B</option>
+                                <option value="C">C</option>
+                                <option value="D">D</option>
+                            </select>
+                        </div>
+                        <span class="slope-separator">/</span>
+                        <div class="form-select slope-part">
+                            <select id="slopePart4">
+                                <option value="C">C</option>
+                                <option value="CR">CR</option>
+                                <option value="DT">DT</option>
+                                <option value="F">F</option>
+                                <option value="FR">FR</option>
+                                <option value="ND">ND</option>
+                                <option value="NS">NS</option>
+                                <option value="R">R</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-select slope-part slope-code">
+                        <input type="text" id="slopePart5" placeholder="斜坡編號" maxlength="4" pattern="[0-9]{1,4}">
+                    </div>
                 </div>
             </div>    
-            <div id="hk80Container" style="display: none;">
+            <div id="hk80Container" class="hidden">
                 <div>
-                    <div class="form-select" style="margin-bottom: 2rem;">
+                    <div class="form-select mb-md">
                         <input type="text" id="hk80X" placeholder="x座標">
                     </div>  
                 </div>
                 <div>
-                    <div class="form-select" style="margin-bottom: 2rem;">
+                    <div class="form-select mb-md">
                         <input type="text" id="hk80Y" placeholder="y座標">
                     </div>
                 </div>    
@@ -58,26 +126,76 @@
             </div>
     
 
-            <div class="travelOptContainer" >
-                <div class="row" >
-                    <input type="checkbox" id="navigateCheckbox"  style="transform: scale(1.5);" onclick="handleDrivingMode(!this.checked);" />
-                    <label for="navigateCheckbox" style="font-size: 1.5rem;">使用導航</label>
+            <div class="travelOptContainer">
+                <div class="row">
+                    <input type="checkbox" id="navigateCheckbox" />
+                    <label for="navigateCheckbox">使用導航</label>
                 </div>
                 <div class="row">
-                    <input type="checkbox" id="drivingModeCheckbox" style="transform: scale(1.5);" disabled />
-                    <label for="drivingModeCheckbox" style="font-size: 1.5rem;" class="disabled">進入駕駛模式<br>(Google地圖適用)</label>
+                    <input type="checkbox" id="drivingModeCheckbox" disabled />
+                    <label for="drivingModeCheckbox" class="disabled">進入駕駛模式<br>(Google地圖適用)</label>
                 </div>
             </div>
 
-            <div style="margin-top: 4rem;">
-                <button type="submit" class="Googlebtn" onclick="document.getElementById('submitButton').value = 'Google'">Google地圖開啟</button>
+            <div class="mt-lg text-center">
+                <button type="submit" class="Googlebtn">獲取資料</button>
             </div>
-            <input type="hidden" id="submitButton" name="submitButton" value="">
+            
+            <!-- 座標顯示區域 -->
+            <div id="coordinateInfo" class="hidden">
+                <div class="text-center mb-md">
+                    <h3 id="coordinateTitle">位置資訊</h3>
+                    <div id="coordinateDisplay">
+                        <div class="coordinate-row">
+                            <div class="coordinate-text">
+                                <span>緯度: </span>
+                                <span id="latDisplay">-</span>
+                            </div>
+                            <button type="button" class="copy-btn" id="copyLatBtn" title="複製緯度">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>
+                                </svg>
+                            </button>
+                        </div>
+                        <div class="coordinate-row">
+                            <div class="coordinate-text">
+                                <span>經度: </span>
+                                <span id="lngDisplay">-</span>
+                            </div>
+                            <button type="button" class="copy-btn" id="copyLngBtn" title="複製經度">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>
+                                </svg>
+                            </button>
+                        </div>
+                        <div class="coordinate-row">
+                            <div class="coordinate-text">
+                                <span>經緯度: </span>
+                                <span id="latlngDisplay">-</span>
+                            </div>
+                            <button type="button" class="copy-btn" id="copyBothBtn" title="複製經緯度">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="text-center">
+                    <button id="openMapBtn" type="button">
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="white">
+                            <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
         </form>
         <div>(初次使用需等候幾秒)</div>
         <div id="github-container">
             <a href="https://github.com/thc282/HongKongLampPostLocation" style="text-decoration: none; cursor: default; color: inherit;" target="_blank">
-                <img src="./github-mark.png" alt="GitHub" class="github github-icon">
+                <svg class="github github-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 2C6.477 2 2 6.477 2 12c0 4.42 2.865 8.17 6.839 9.49.5.092.682-.217.682-.482 0-.237-.008-.866-.013-1.7-2.782.605-3.369-1.342-3.369-1.342-.454-1.155-1.11-1.462-1.11-1.462-.908-.62.069-.608.069-.608 1.003.07 1.531 1.03 1.531 1.03.892 1.529 2.341 1.087 2.91.831.092-.646.35-1.086.636-1.336-2.22-.253-4.555-1.11-4.555-4.943 0-1.091.39-1.984 1.029-2.683-.103-.253-.446-1.27.098-2.647 0 0 .84-.269 2.75 1.025A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.294 2.747-1.025 2.747-1.025.546 1.377.203 2.394.1 2.647.64.699 1.028 1.592 1.028 2.683 0 3.842-2.339 4.687-4.566 4.935.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.743 0 .267.18.578.688.48C19.138 20.167 22 16.418 22 12c0-5.523-4.477-10-10-10z" fill="currentColor"/>
+                </svg>
             </a>
         </div>
     </body>
