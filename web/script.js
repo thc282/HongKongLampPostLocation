@@ -216,7 +216,8 @@ class LampPostApp {
         
         this.elements.latDisplay.textContent = latitude.toFixed(6);
         this.elements.lngDisplay.textContent = longitude.toFixed(6);
-        this.elements.latlngDisplay.textContent = `${longitude.toFixed(6)}, ${latitude.toFixed(6)}`;
+        // 改為 緯度,經度 順序 (Google Map 格式)
+        this.elements.latlngDisplay.textContent = `${latitude.toFixed(6)}, ${longitude.toFixed(6)}`;
         
         this.updateTitle(title);
         this.elements.coordinateInfo.classList.remove('hidden');
@@ -256,13 +257,19 @@ class LampPostApp {
         const isDriving = this.elements.drivingModeCheckbox.checked;
 
         const urls = this.buildMapUrls(encodedAddress, isNavigate, travelMode, isDriving);
-        const isIPhone = /\(i[^;]+;( U;)? CPU.+Mac OS X/.test(navigator.userAgent);
+        // const isIPhone = /\(i[^;]+;( U;)? CPU.+Mac OS X/.test(navigator.userAgent);
 
-        if (isIPhone) {
-            window.location.href = urls.apple;
-        } else {
-            window.open(urls.google, '_blank');
-        }
+        // console.log('打開地圖URL:', isIPhone ? urls.apple : urls.google);
+        
+        // if (isIPhone) {
+        //     window.location.href = urls.apple;
+        // } else {
+        //     window.open(urls.google, '_blank');
+        // }
+
+
+        // 暫時只使用 Google Map
+        window.open(urls.google, '_blank');
     }
 
     // 構建地圖URL
@@ -385,20 +392,22 @@ class LampPostApp {
             return;
         }
 
+        const { latitude, longitude } = this.currentData;
         let textToCopy = '';
         let buttonElement = null;
 
         switch (type) {
             case 'lat':
-                textToCopy = this.currentData.latitude.toFixed(6);
+                textToCopy = latitude.toFixed(6);
                 buttonElement = this.elements.copyLatBtn;
                 break;
             case 'lng':
-                textToCopy = this.currentData.longitude.toFixed(6);
+                textToCopy = longitude.toFixed(6);
                 buttonElement = this.elements.copyLngBtn;
                 break;
             case 'both':
-                textToCopy = `${this.currentData.longitude.toFixed(6)}, ${this.currentData.latitude.toFixed(6)}`;
+                // 改為 緯度,經度 順序 (Google Map 格式)
+                textToCopy = `${latitude.toFixed(6)}, ${longitude.toFixed(6)}`;
                 buttonElement = this.elements.copyBothBtn;
                 break;
             default:
