@@ -578,6 +578,7 @@ select:focus {
     padding: var(--spacing-xs);
     border-radius: var(--spacing-xs);
     transition: background-color var(--transition-fast);
+    overflow: visible;
 }
 
 .coordinate-row:hover {
@@ -605,6 +606,8 @@ select:focus {
     width: 20px;
     height: 20px;
     flex-shrink: 0;
+    position: relative;
+    overflow: visible;
 }
 
 .copy-btn svg {
@@ -629,6 +632,76 @@ select:focus {
 
 .copy-btn.copied svg {
     animation: copySuccess 0.3s ease-in-out;
+}
+
+.copy-success-popup {
+    position: absolute;
+    left: calc(100% + 0.6rem);
+    top: 50%;
+    transform: translateY(-50%) translateX(-0.35rem) scale(0.96);
+    opacity: 0;
+    pointer-events: none;
+    z-index: 3;
+    white-space: nowrap;
+    padding: 0.45rem 0.7rem;
+    border-radius: 999px;
+    background: rgba(59, 66, 85, 0.96);
+    color: #fff;
+    font-size: 0.9rem;
+    font-weight: 700;
+    line-height: 1;
+    box-shadow: 0 0.55rem 1.25rem rgba(0, 0, 0, 0.16);
+    transition: opacity var(--transition-fast), transform var(--transition-fast);
+}
+
+.copy-success-popup::before {
+    content: '';
+    position: absolute;
+    right: 100%;
+    top: 50%;
+    transform: translateY(-50%);
+    border-width: 0.35rem 0.42rem 0.35rem 0;
+    border-style: solid;
+    border-color: transparent rgba(59, 66, 85, 0.96) transparent transparent;
+}
+
+.copy-success-popup.visible {
+    opacity: 1;
+    transform: translateY(-50%) translateX(0) scale(1);
+}
+
+.dark-mode .copy-success-popup {
+    background: rgba(18, 24, 38, 0.98);
+}
+
+.dark-mode .copy-success-popup::before {
+    border-color: transparent rgba(18, 24, 38, 0.98) transparent transparent;
+}
+
+@media (max-width: 600px) {
+    .copy-success-popup {
+        left: 50%;
+        top: calc(100% + 0.45rem);
+        transform: translateX(-50%) translateY(-0.35rem) scale(0.96);
+    }
+
+    .copy-success-popup::before {
+        right: auto;
+        left: 50%;
+        top: auto;
+        bottom: 100%;
+        transform: translateX(-50%);
+        border-width: 0 0.42rem 0.35rem 0.42rem;
+        border-color: transparent transparent rgba(59, 66, 85, 0.96) transparent;
+    }
+
+    .copy-success-popup.visible {
+        transform: translateX(-50%) translateY(0) scale(1);
+    }
+
+    .dark-mode .copy-success-popup::before {
+        border-color: transparent transparent rgba(18, 24, 38, 0.98) transparent;
+    }
 }
 
 @keyframes copySuccess {

@@ -589,6 +589,14 @@ class LampPostApp {
     showCopySuccess(buttonElement, type) {
         if (!buttonElement) return;
 
+        if (buttonElement._copySuccessTimeout) {
+            clearTimeout(buttonElement._copySuccessTimeout);
+            buttonElement._copySuccessTimeout = null;
+        }
+
+        const existingPopup = buttonElement.querySelector('.copy-success-popup');
+        existingPopup?.remove();
+
         // 添加成功樣式
         buttonElement.classList.add('copied');
         
@@ -598,18 +606,27 @@ class LampPostApp {
             lng: '已複製經度',
             both: '已複製經緯度'
         };
-        
-        buttonElement.title = messages[type] || '已複製';
+
+        const popup = document.createElement('span');
+        popup.className = 'copy-success-popup';
+        popup.setAttribute('role', 'status');
+        popup.setAttribute('aria-live', 'polite');
+        popup.textContent = messages[type] || '已複製';
+
+        buttonElement.appendChild(popup);
+
+        requestAnimationFrame(() => {
+            popup.classList.add('visible');
+        });
 
         // 1.5秒後恢復原樣
-        setTimeout(() => {
+        buttonElement._copySuccessTimeout = setTimeout(() => {
             buttonElement.classList.remove('copied');
-            const originalMessages = {
-                lat: '複製緯度',
-                lng: '複製經度',
-                both: '複製經緯度'
-            };
-            buttonElement.title = originalMessages[type] || '複製';
+            popup.classList.remove('visible');
+
+            setTimeout(() => {
+                popup.remove();
+            }, 200);
         }, 1500);
     }
 }
