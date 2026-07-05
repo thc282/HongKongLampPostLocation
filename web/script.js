@@ -10,9 +10,9 @@ class LampPostApp {
         this.config = {
             breakpoint: 600,
             apis: {
-                lamppost: 'https://api.csdi.gov.hk/apim/dataquery/api/?id=hyd_rcd_1629267205229_84645&layer=lamppost&limit=10&offset=0',
+                lamppost: 'https://www.map.gov.hk/gih-ws2/lp/',
                 slope: 'https://www.slope.landsd.gov.hk/smris/getSlopeTechInfo?sn=',
-                slopeProxy: 'https://api.allorigins.win/get?url='
+                fetchProxy: 'https://api.allorigins.win/get?url='
             }
         };
 
@@ -124,21 +124,12 @@ class LampPostApp {
 
         this.elements.lampName.value = lampName;
         
-        try {
-            const url = `${this.config.apis.lamppost}&Lamp_Post_Number=${lampName}`;
-            const response = await fetch(url);
-            const data = await response.json();
-            
-            if (data.numberMatched > 0) {
-                const { Latitude: lat, Longitude: lng } = data.features[0].properties;
-                this.displayCoordinates(lat, lng, `路燈: ${lampName}`);
-            } else {
-                this.showAlert('沒有該路燈位置及資訊!');
-            }
-        } catch (error) {
-            console.error('路燈查詢錯誤:', error);
-            this.showAlert('查詢過程中發生錯誤!');
-        }
+        const urls = [
+            `${this.config.apis.lamppost}${lampName}`,
+            `${this.config.apis.fetchProxy}${encodeURIComponent(this.config.apis.lamppost +lampName)}`
+        ];
+
+        await this.tryFetchLampWithProxy(urls, lampName);
     }
 
     // 斜坡查詢
@@ -161,14 +152,14 @@ class LampPostApp {
 
         const urls = [
             `${this.config.apis.slope}${encodeURIComponent(slopeNumber)}`,
-            `${this.config.apis.slopeProxy}${encodeURIComponent(this.config.apis.slope + slopeNumber)}`
+            `${this.config.apis.fetchProxy}${encodeURIComponent(this.config.apis.slope + slopeNumber)}`
         ];
 
-        await this.tryFetchWithProxy(urls, slopeNumber);
+        await this.tryFetchSlopeWithProxy(urls, slopeNumber);
     }
 
     // 代理服務嘗試
-    async tryFetchWithProxy(urls, slopeNumber) {
+    async tryFetchSlopeWithProxy(urls, slopeNumber) {
         for (let i = 0; i < urls.length; i++) {
             try {
                 const response = await fetch(urls[i]);
@@ -194,6 +185,35 @@ class LampPostApp {
                 }
             }
         }
+    }
+
+    async tryFetchLampWithProxy(urls, lampName) {
+        for (let i = 0; i < urls.length; i++) {
+            try {
+                const response = await puter.net.fetch(urls[i]);
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+
+                const data = await response.json();
+            
+                if (data.length > 0) {
+                    const coordinates = this.transformToCoordinatesList(data);
+                    this.displayCoordinates(coordinates[0].lat, coordinates[0].lng, `路燈: ${lampName}`);
+                } else {
+                    this.showAlert('沒有該路燈位置及資訊!');
+                }
+                return;
+            } catch (error) {
+                console.error('路燈查詢錯誤:', error);
+                this.showAlert('查詢過程中發生錯誤!');
+            }
+        }
+    }
+
+    // 轉換為座標列表
+    transformToCoordinatesList(data) {
+        return data.map(({X, Y}) => 
+            new Conversion().gridToLatLng({ x: X, y: Y })
+        );
     }
 
     // HK80座標查詢
