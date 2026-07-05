@@ -293,21 +293,40 @@ body .disabled {
     width: 100%;
 }
 
-#coordinateTitle {
+/* 多筆座標卡片列表 */
+#coordinateList {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-sm);
+}
+
+.coordinate-card {
+    padding: 1rem;
+    border: 1px solid var(--border-light);
+    border-radius: var(--border-radius);
+    background-color: rgba(255, 255, 255, 0.55);
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.04);
+}
+
+.coordinate-card-title {
     margin: 0 0 var(--spacing-xs) 0;
     color: #333;
     font-size: var(--font-size-large);
     line-height: 1.4;
 }
 
-#coordinateDisplay {
+.coordinate-card-display {
     font-size: var(--font-size-small);
     color: var(--text-secondary);
     line-height: 1.4;
     margin-bottom: var(--spacing-sm);
 }
 
-#openMapBtn {
+.coordinate-card-actions {
+    margin-top: var(--spacing-xs);
+}
+
+.coordinate-map-btn {
     background-color: var(--primary-color);
     border: none;
     border-radius: var(--spacing-xs);
@@ -319,7 +338,7 @@ body .disabled {
     transition: background-color var(--transition-fast);
 }
 
-#openMapBtn:hover {
+.coordinate-map-btn:hover {
     background-color: var(--primary-hover);
 }
 
@@ -367,12 +386,21 @@ body .disabled {
     border-color: #666;
 }
 
-.dark-mode #coordinateTitle {
+.dark-mode .coordinate-card {
+    background-color: rgba(255, 255, 255, 0.06);
+    border-color: #666;
+}
+
+.dark-mode .coordinate-card-title {
     color: #e2e8f0;
 }
 
-.dark-mode #coordinateDisplay {
+.dark-mode .coordinate-card-display {
     color: #cbd5e0;
+}
+
+.dark-mode .coordinate-map-btn {
+    background-color: #4a9d82;
 }
 
 /* 深色模式下的 SVG 圖標 */
@@ -391,7 +419,7 @@ body .disabled {
 
 /* 響應式設計 */
 @media (max-width: var(--breakpoint-tablet)) {
-    #coordinateTitle {
+    .coordinate-card-title {
         white-space: pre-line;
         word-break: keep-all;
     }
@@ -407,7 +435,7 @@ body .disabled {
 }
 
 @media (min-width: var(--breakpoint-tablet)) {
-    #coordinateTitle {
+    .coordinate-card-title {
         white-space: nowrap;
     }
 }

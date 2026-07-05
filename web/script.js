@@ -29,9 +29,8 @@ class LampPostApp {
             'queryMode', 'lampContainer', 'lampName', 'slopeContainer',
             'slopePart1', 'slopePart2', 'slopePart3', 'slopePart4', 'slopePart5',
             'hk80Container', 'hk80X', 'hk80Y', 'travelMode', 'navigateCheckbox',
-            'drivingModeCheckbox', 'searchForm', 'coordinateInfo',
-            'latDisplay', 'lngDisplay', 'latlngDisplay', 'openMapBtn', 'themeBtn', 'datetime',
-            'copyLatBtn', 'copyLngBtn', 'copyBothBtn'
+            'drivingModeCheckbox', 'searchForm', 'coordinateInfo', 'coordinateList',
+            'coordinateTemplate', 'themeBtn', 'datetime'
         ];
 
         elementIds.forEach(id => {
@@ -51,19 +50,14 @@ class LampPostApp {
         // 表單提交
         this.elements.searchForm?.addEventListener('submit', (e) => this.handleFormSubmit(e));
         
-        // 地圖按鈕
-        this.elements.openMapBtn?.addEventListener('click', (e) => this.handleMapButtonClick(e));
-        
         // 主題切換
         this.elements.themeBtn?.addEventListener('click', () => this.toggleTheme());
-        
+
         // 駕駛模式處理
         this.elements.navigateCheckbox?.addEventListener('change', (e) => this.handleDrivingMode(e.target.checked));
-        
-        // 複製按鈕
-        this.elements.copyLatBtn?.addEventListener('click', () => this.copyToClipboard('lat'));
-        this.elements.copyLngBtn?.addEventListener('click', () => this.copyToClipboard('lng'));
-        this.elements.copyBothBtn?.addEventListener('click', () => this.copyToClipboard('both'));
+
+        // 座標卡片動作
+        this.elements.coordinateList?.addEventListener('click', (event) => this.handleCoordinateAction(event));
         
         // 斜坡輸入處理
         this.setupSlopeInputHandlers();
@@ -176,7 +170,13 @@ class LampPostApp {
 
                 const { NORTHING, EASTING } = slopeData[0];
                 const coordinate = new Conversion().gridToLatLng({ x: EASTING, y: NORTHING });
-                this.displayCoordinates(coordinate.lat, coordinate.lng, `斜坡: ${slopeNumber}`);
+                this.displayCoordinates([
+                    {
+                        latitude: coordinate.lat,
+                        longitude: coordinate.lng,
+                        title: `斜坡: ${slopeNumber}`
+                    }
+                ]);
                 return;
             } catch (error) {
                 console.error(`代理 ${i + 1} 失敗:`, error);
@@ -197,7 +197,12 @@ class LampPostApp {
             
                 if (data.length > 0) {
                     const coordinates = this.transformToCoordinatesList(data);
-                    this.displayCoordinates(coordinates[0].lat, coordinates[0].lng, `路燈: ${lampName}`);
+                    const coordinateCards = coordinates.map((coordinate, index) => ({
+                        latitude: coordinate.lat,
+                        longitude: coordinate.lng,
+                        title: coordinates.length > 1 ? `路燈: ${lampName} (${index + 1})` : `路燈: ${lampName}`
+                    }));
+                    this.displayCoordinates(coordinateCards);
                 } else {
                     this.showAlert('沒有該路燈位置及資訊!');
                 }
@@ -227,26 +232,102 @@ class LampPostApp {
         }
 
         const coordinate = new Conversion().gridToLatLng({ x, y });
-        this.displayCoordinates(coordinate.lat, coordinate.lng, `HK80座標: ${x}, ${y}`);
+        this.displayCoordinates([
+            {
+                latitude: coordinate.lat,
+                longitude: coordinate.lng,
+                title: `HK80座標: ${x}, ${y}`
+            }
+        ]);
     }
 
     // 顯示座標資訊
     displayCoordinates(latitude, longitude, title = '位置資訊') {
-        this.currentData = { latitude, longitude, title };
-        
-        this.elements.latDisplay.textContent = latitude.toFixed(6);
-        this.elements.lngDisplay.textContent = longitude.toFixed(6);
-        // 改為 緯度,經度 順序 (Google Map 格式)
-        this.elements.latlngDisplay.textContent = `${latitude.toFixed(6)}, ${longitude.toFixed(6)}`;
-        
-        this.updateTitle(title);
+        if (Array.isArray(latitude)) {
+            this.renderCoordinates(latitude);
+            return;
+        }
+
+        this.renderCoordinates([
+            {
+                latitude,
+                longitude,
+                title
+            }
+        ]);
+    }
+
+    renderCoordinates(coordinates) {
+        const coordinateList = this.elements.coordinateList;
+        const template = this.elements.coordinateTemplate;
+
+        if (!coordinateList || !template) {
+            console.warn('Coordinate list template is missing from the DOM.');
+            return;
+        }
+
+        const normalizedCoordinates = coordinates.filter(({ latitude, longitude }) =>
+            Number.isFinite(latitude) && Number.isFinite(longitude)
+        );
+
+        if (normalizedCoordinates.length === 0) {
+            this.showAlert('沒有可顯示的座標資料!');
+            return;
+        }
+
+        coordinateList.innerHTML = '';
+        this.currentData = normalizedCoordinates[0];
+
+        normalizedCoordinates.forEach((coordinate, index) => {
+            const card = template.content.firstElementChild.cloneNode(true);
+            const titleElement = card.querySelector('[data-coordinate-title]');
+            const latDisplay = card.querySelector('[data-coordinate-lat]');
+            const lngDisplay = card.querySelector('[data-coordinate-lng]');
+            const latlngDisplay = card.querySelector('[data-coordinate-latlng]');
+            const mapButton = card.querySelector('[data-coordinate-action="map"]');
+            const displayTitle = coordinate.title || '位置資訊';
+
+            card.dataset.latitude = coordinate.latitude.toFixed(6);
+            card.dataset.longitude = coordinate.longitude.toFixed(6);
+            card.dataset.title = displayTitle;
+            card.dataset.index = String(index);
+
+            if (titleElement) {
+                titleElement.dataset.fullTitle = displayTitle;
+                this.updateTitle(titleElement, displayTitle);
+            }
+
+            if (latDisplay) {
+                latDisplay.textContent = coordinate.latitude.toFixed(6);
+                latDisplay.dataset.latitude = coordinate.latitude.toFixed(6);
+            }
+
+            if (lngDisplay) {
+                lngDisplay.textContent = coordinate.longitude.toFixed(6);
+                lngDisplay.dataset.longitude = coordinate.longitude.toFixed(6);
+            }
+
+            if (latlngDisplay) {
+                latlngDisplay.textContent = `${coordinate.latitude.toFixed(6)}, ${coordinate.longitude.toFixed(6)}`;
+                latlngDisplay.dataset.latitude = coordinate.latitude.toFixed(6);
+                latlngDisplay.dataset.longitude = coordinate.longitude.toFixed(6);
+            }
+
+            if (mapButton) {
+                mapButton.dataset.title = displayTitle;
+                mapButton.title = `開啟地圖 - ${displayTitle}`;
+                mapButton.setAttribute('aria-label', `開啟地圖 - ${displayTitle}`);
+            }
+
+            coordinateList.appendChild(card);
+        });
+
         this.elements.coordinateInfo.classList.remove('hidden');
         this.elements.coordinateInfo.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
 
     // 更新標題
-    updateTitle(title) {
-        const titleElement = document.getElementById('coordinateTitle');
+    updateTitle(titleElement, title) {
         if (!titleElement) return;
 
         const isNarrowScreen = window.innerWidth < this.config.breakpoint;
@@ -258,12 +339,9 @@ class LampPostApp {
     }
 
     // 地圖按鈕點擊處理
-    handleMapButtonClick(event) {
-        event.preventDefault();
-        event.stopPropagation();
-        
-        if (this.currentData.latitude && this.currentData.longitude) {
-            this.openMap(this.currentData.latitude, this.currentData.longitude);
+    handleMapButtonClick({ latitude, longitude }) {
+        if (latitude && longitude) {
+            this.openMap(latitude, longitude);
         } else {
             this.showAlert('請先獲取位置資料!');
         }
@@ -379,9 +457,16 @@ class LampPostApp {
 
     // 窗口大小變化處理
     handleResize() {
-        if (this.currentData.title) {
-            this.updateTitle(this.currentData.title);
-        }
+        this.refreshCoordinateTitles();
+    }
+
+    refreshCoordinateTitles() {
+        const titleElements = this.elements.coordinateList?.querySelectorAll('[data-coordinate-title]') ?? [];
+
+        titleElements.forEach((titleElement) => {
+            const title = titleElement.dataset.fullTitle || titleElement.textContent || '位置資訊';
+            this.updateTitle(titleElement, title);
+        });
     }
 
     // 時鐘
@@ -406,29 +491,25 @@ class LampPostApp {
     }
 
     // 複製到剪貼板
-    async copyToClipboard(type) {
-        if (!this.currentData.latitude || !this.currentData.longitude) {
+    async copyToClipboard(type, coordinate, buttonElement) {
+        if (!coordinate || !Number.isFinite(coordinate.latitude) || !Number.isFinite(coordinate.longitude)) {
             this.showAlert('沒有可複製的座標資料!');
             return;
         }
 
-        const { latitude, longitude } = this.currentData;
+        const { latitude, longitude } = coordinate;
         let textToCopy = '';
-        let buttonElement = null;
 
         switch (type) {
             case 'lat':
                 textToCopy = latitude.toFixed(6);
-                buttonElement = this.elements.copyLatBtn;
                 break;
             case 'lng':
                 textToCopy = longitude.toFixed(6);
-                buttonElement = this.elements.copyLngBtn;
                 break;
             case 'both':
                 // 改為 緯度,經度 順序 (Google Map 格式)
                 textToCopy = `${latitude.toFixed(6)}, ${longitude.toFixed(6)}`;
-                buttonElement = this.elements.copyBothBtn;
                 break;
             default:
                 return;
@@ -447,6 +528,40 @@ class LampPostApp {
         } catch (error) {
             console.error('複製失敗:', error);
             this.showAlert('複製失敗，請手動複製座標');
+        }
+    }
+
+    // 座標卡片點擊處理
+    handleCoordinateAction(event) {
+        const actionButton = event.target.closest('[data-coordinate-action]');
+
+        if (!actionButton || !this.elements.coordinateList?.contains(actionButton)) {
+            return;
+        }
+
+        event.preventDefault();
+        event.stopPropagation();
+
+        const coordinateCard = actionButton.closest('.coordinate-card');
+        const latitudeField = coordinateCard?.querySelector('[data-coordinate-lat]');
+        const longitudeField = coordinateCard?.querySelector('[data-coordinate-lng]');
+        const coordinate = {
+            latitude: Number.parseFloat(latitudeField?.dataset.latitude || latitudeField?.textContent || ''),
+            longitude: Number.parseFloat(longitudeField?.dataset.longitude || longitudeField?.textContent || '')
+        };
+        const action = actionButton.dataset.coordinateAction;
+
+        switch (action) {
+            case 'lat':
+            case 'lng':
+            case 'both':   
+                this.copyToClipboard(action, coordinate, actionButton);
+                break;
+            case 'map':
+                this.handleMapButtonClick(coordinate);
+                break;  
+            default:
+                console.warn(`未知的座標操作: ${action}`);
         }
     }
 
