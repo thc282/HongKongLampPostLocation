@@ -10,7 +10,7 @@ class LampPostApp {
         this.config = {
             breakpoint: 600,
             apis: {
-                lamppost: 'https://www.map.gov.hk/gih-ws2/lp/',
+                lamppostProxy: 'https://hklamppost-proxy.thc282.workers.dev/lp/',
                 slope: 'https://www.slope.landsd.gov.hk/smris/getSlopeTechInfo?sn=',
                 fetchProxy: 'https://api.allorigins.win/get?url='
             }
@@ -109,7 +109,7 @@ class LampPostApp {
 
     // 路燈查詢
     async searchLamp() {
-        const lampName = this.elements.lampName.value.toUpperCase();
+        const lampName = this.elements.lampName.value.trim().toUpperCase();
         
         if (!lampName) {
             this.showAlert('請輸入燈柱編號!');
@@ -118,12 +118,7 @@ class LampPostApp {
 
         this.elements.lampName.value = lampName;
         
-        const urls = [
-            `${this.config.apis.lamppost}${lampName}`,
-            `${this.config.apis.fetchProxy}${encodeURIComponent(this.config.apis.lamppost +lampName)}`
-        ];
-
-        await this.tryFetchLampWithProxy(urls, lampName);
+        await this.tryFetchLampWithProxy(lampName);
     }
 
     // 斜坡查詢
@@ -187,30 +182,28 @@ class LampPostApp {
         }
     }
 
-    async tryFetchLampWithProxy(urls, lampName) {
-        for (let i = 0; i < urls.length; i++) {
-            try {
-                const response = await puter.net.fetch(urls[i]);
-                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+    async tryFetchLampWithProxy(lampName) {
+        try {
+            const url = `${this.config.apis.lamppostProxy}${lampName}`;
+            const response = await fetch(url);
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
 
-                const data = await response.json();
-            
-                if (data.length > 0) {
-                    const coordinates = this.transformToCoordinatesList(data);
-                    const coordinateCards = coordinates.map((coordinate, index) => ({
-                        latitude: coordinate.lat,
-                        longitude: coordinate.lng,
-                        title: coordinates.length > 1 ? `路燈: ${lampName} (${index + 1})` : `路燈: ${lampName}`
-                    }));
-                    this.displayCoordinates(coordinateCards);
-                } else {
-                    this.showAlert('沒有該路燈位置及資訊!');
-                }
-                return;
-            } catch (error) {
-                console.error('路燈查詢錯誤:', error);
-                this.showAlert('查詢過程中發生錯誤!');
+            const data = await response.json();
+        
+            if (data.length > 0) {
+                const coordinates = this.transformToCoordinatesList(data);
+                const coordinateCards = coordinates.map((coordinate, index) => ({
+                    latitude: coordinate.lat,
+                    longitude: coordinate.lng,
+                    title: coordinates.length > 1 ? `路燈: ${lampName} (${index + 1})` : `路燈: ${lampName}`
+                }));
+                this.displayCoordinates(coordinateCards);
+            } else {
+                this.showAlert('沒有該路燈位置及資訊!');
             }
+        } catch (error) {
+            console.error('路燈查詢錯誤:', error);
+            this.showAlert('查詢過程中發生錯誤!');
         }
     }
 
