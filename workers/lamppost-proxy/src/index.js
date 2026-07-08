@@ -6,7 +6,7 @@ const ALLOWED_ORIGINS = new Set([
   "http://localhost:8080",
   "http://127.0.0.1:8080"
 ]);
-const LAMP_POST_PATTERN = /^[A-Z0-9_-]{1,32}$/;
+const LAMP_POST_PATTERN = /^[A-Z0-9/_-]{1,64}$/;
 
 function corsHeaders(request) {
   const origin = request.headers.get("Origin") || DEFAULT_ORIGIN;
@@ -46,7 +46,14 @@ export default {
     }
 
     const url = new URL(request.url);
-    const match = url.pathname.match(/^\/lp\/([^/]+)$/);
+    if (url.search) {
+      return jsonResponse(
+        { error: "Invalid lamp post number" },
+        { status: 400, headers }
+      );
+    }
+
+    const match = url.pathname.match(/^\/lp\/(.+)$/);
 
     if (!match) {
       return jsonResponse(
@@ -55,16 +62,7 @@ export default {
       );
     }
 
-    let lampPostNumber;
-    try {
-      lampPostNumber = decodeURIComponent(match[1]).toUpperCase();
-    } catch (error) {
-      return jsonResponse(
-        { error: "Invalid lamp post number" },
-        { status: 400, headers }
-      );
-    }
-
+    const lampPostNumber = match[1];
     if (!LAMP_POST_PATTERN.test(lampPostNumber)) {
       return jsonResponse(
         { error: "Invalid lamp post number" },
@@ -72,7 +70,7 @@ export default {
       );
     }
 
-    const upstreamUrl = `https://www.map.gov.hk/gih-ws2/lp/${encodeURIComponent(lampPostNumber)}`;
+    const upstreamUrl = `https://www.map.gov.hk/gih-ws2/lp/${lampPostNumber}`;
 
     let upstream;
     try {
