@@ -1,0 +1,6 @@
+{
+  "name": "hklamppost-proxy",
+  "main": "src/index.js",
+  "compatibility_date": "2026-07-08",
+  "workers_dev": true
+}
